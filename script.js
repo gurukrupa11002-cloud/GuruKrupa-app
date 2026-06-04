@@ -78,6 +78,17 @@ async function handleLogin() {
         checkSession(); // Refresh the UI to show the app
     }
 }
+async function handleLogout() {
+    // Tell Supabase to destroy their secure session
+    const { error } = await supabaseClient.auth.signOut();
+    
+    if (error) {
+        alert("Error logging out: " + error.message);
+    } else {
+        // Refresh the page. Because they have no session, checkSession() will automatically kick them back to the login screen!
+        window.location.reload(); 
+    }
+}
 let projectWindows = []; 
 let currentBoxes = []; 
 let historyStack = [];
