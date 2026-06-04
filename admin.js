@@ -84,3 +84,7 @@ async function updateStatus(userId, newStatus) {
         alert("Error updating status: " + error.message);
     }
 }
+async function adminLogout() {
+    await supabaseClient.auth.signOut();
+    window.location.href = 'index.html';
+}

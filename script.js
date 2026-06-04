@@ -41,6 +41,16 @@ async function checkSession() {
     }
 }
 
+// Constantly watch for session changes or expirations in the background
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' && !session) {
+        // If their security token dies, instantly lock the app
+        document.getElementById('authScreen').style.display = 'flex';
+        document.getElementById('paymentScreen').style.display = 'none';
+        document.querySelector('.app-container').style.display = 'none';
+    }
+});
+
 async function handleSignUp() {
     const email = document.getElementById('emailInput').value;
     const password = document.getElementById('passwordInput').value;
