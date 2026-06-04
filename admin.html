@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - SMG</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="admin.js" defer></script>
+</head>
+<body style="padding: 40px; overflow-y: auto;">
+    
+    <div class="panel" style="max-width: 900px; margin: 0 auto;">
+        <div class="panel-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="brand-icon">🛡️</div>
+                <h2 style="margin: 0; color: var(--brand-dark);">Admin Dashboard</h2>
+            </div>
+            <button class="btn btn-outline-primary" onclick="window.location.href='index.html'">Back to App</button>
+        </div>
+        
+        <div class="panel-body">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted);">
+                        <th style="padding: 12px;">User Email</th>
+                        <th style="padding: 12px;">Account Role</th>
+                        <th style="padding: 12px;">Payment Status</th>
+                        <th style="padding: 12px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    <tr><td colspan="4" style="text-align: center; padding: 20px;">Loading users...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>
