@@ -2,40 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard - SMG</title>
+    <title>Admin Portal - SMG</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="admin.js" defer></script>
 </head>
-<body style="padding: 40px; overflow-y: auto;">
+<body style="margin: 0; padding: 0; background-color: var(--bg-app); overflow: hidden;">
     
-    <div class="panel" style="max-width: 900px; margin: 0 auto;">
-        <div class="panel-header">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div class="brand-icon">🛡️</div>
-                <h2 style="margin: 0; color: var(--brand-dark);">Admin Dashboard</h2>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-outline-primary" onclick="window.location.href='index.html'">Back to App</button>
-                <button class="btn btn-danger" onclick="adminLogout()">Log Out</button>
-            </div>
+    <div id="adminAuthScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--brand-dark); z-index: 100; position: absolute; width: 100%;">
+        <div style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 320px; text-align: center; border: 1px solid var(--border-color);">
+            <div style="font-size: 40px; margin-bottom: 10px;">🛡️</div>
+            <h2 style="margin-top: 0; color: var(--brand-dark);">Admin Portal</h2>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Authorized personnel only</p>
+            
+            <input type="email" id="adminEmail" placeholder="Admin Email" style="margin-bottom: 12px;">
+            <input type="password" id="adminPassword" placeholder="Password" style="margin-bottom: 20px;">
+            
+            <button class="btn btn-gradient full-width shadow-hover" onclick="handleAdminLogin()" style="margin-bottom: 10px;">Secure Login</button>
+            <button class="btn btn-glass full-width" style="color: var(--text-muted); border-color: var(--border-color);" onclick="window.location.href='index.html'">Return to App</button>
+            
+            <p id="adminAuthMsg" style="color: var(--danger); font-size: 12px; margin-top: 15px; min-height: 18px;"></p>
         </div>
-        
-        <div class="panel-body">
-            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
-                <thead>
-                    <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted);">
-                        <th style="padding: 12px;">User Email</th>
-                        <th style="padding: 12px;">Account Role</th>
-                        <th style="padding: 12px;">Payment Status</th>
-                        <th style="padding: 12px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="userTableBody">
-                    <tr><td colspan="4" style="text-align: center; padding: 20px;">Loading users...</td></tr>
-                </tbody>
-            </table>
+    </div>
+
+    <div id="adminDashboard" style="display: none; padding: 40px; overflow-y: auto; height: 100vh; width: 100%; box-sizing: border-box;">
+        <div class="panel" style="max-width: 900px; margin: 0 auto;">
+            <div class="panel-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="brand-icon">🛡️</div>
+                    <h2 style="margin: 0; color: var(--brand-dark);">Admin Dashboard</h2>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-outline-primary" onclick="window.location.href='index.html'">Main App</button>
+                    <button class="btn btn-danger" onclick="adminLogout()">Log Out</button>
+                </div>
+            </div>
+            
+            <div class="panel-body">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted);">
+                            <th style="padding: 12px;">User Email</th>
+                            <th style="padding: 12px;">Account Role</th>
+                            <th style="padding: 12px;">Payment Status</th>
+                            <th style="padding: 12px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        <tr><td colspan="4" style="text-align: center; padding: 20px;">Loading users...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
