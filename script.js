@@ -1,3 +1,68 @@
+// --- Supabase Initialization ---
+const supabaseUrl = 'https://kqgtomdvgpiuvfuoiyjw.supabase.co'; // Paste URL here
+const supabaseKey = 'sb_publishable_nQuk3NkG2oB2zESabijRMA_fGoOxgNT'; // Paste Anon Key here
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+// --- Authentication Logic ---
+document.addEventListener("DOMContentLoaded", () => {
+    // Hide the main app container on load
+    document.querySelector('.app-container').style.display = 'none';
+    checkSession();
+});
+
+async function checkSession() {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (session) {
+        // User is logged in! Hide the auth screen and show the app
+        document.getElementById('authScreen').style.display = 'none';
+        document.querySelector('.app-container').style.display = 'flex';
+        
+        // TODO: Next step is checking if their payment status is 'cleared'
+    } else {
+        // Not logged in, ensure auth screen is visible
+        document.getElementById('authScreen').style.display = 'flex';
+        document.querySelector('.app-container').style.display = 'none';
+    }
+}
+
+async function handleSignUp() {
+    const email = document.getElementById('emailInput').value;
+    const password = document.getElementById('passwordInput').value;
+    const msg = document.getElementById('authMessage');
+    
+    msg.style.color = "var(--text-muted)";
+    msg.innerText = "Creating account...";
+    
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    
+    if (error) {
+        msg.style.color = "var(--danger)";
+        msg.innerText = error.message;
+    } else {
+        msg.style.color = "var(--accent-primary)";
+        msg.innerText = "Account created! You can now log in.";
+    }
+}
+
+async function handleLogin() {
+    const email = document.getElementById('emailInput').value;
+    const password = document.getElementById('passwordInput').value;
+    const msg = document.getElementById('authMessage');
+    
+    msg.style.color = "var(--text-muted)";
+    msg.innerText = "Logging in...";
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+        msg.style.color = "var(--danger)";
+        msg.innerText = error.message;
+    } else {
+        msg.innerText = "";
+        checkSession(); // Refresh the UI to show the app
+    }
+}
 let projectWindows = []; 
 let currentBoxes = []; 
 let historyStack = [];

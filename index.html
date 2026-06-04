@@ -9,10 +9,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js" defer></script>
 </head>
 <body>
-
+    <div id="authScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 100; position: absolute; width: 100%;">
+    <div style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 320px; text-align: center; border: 1px solid var(--border-color);">
+        <div class="brand-icon" style="font-size: 32px; margin-bottom: 10px; display: inline-block;">📐</div>
+        <h2 style="margin-top: 0; color: var(--brand-dark);">SMG Studio</h2>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Sign in to access your workspace</p>
+        
+        <input type="email" id="emailInput" placeholder="Email Address" style="margin-bottom: 12px;">
+        <input type="password" id="passwordInput" placeholder="Password" style="margin-bottom: 20px;">
+        
+        <button class="btn btn-gradient full-width shadow-hover" onclick="handleLogin()" style="margin-bottom: 10px;">Log In</button>
+        <button class="btn btn-outline-primary full-width" onclick="handleSignUp()">Create Account</button>
+        
+        <p id="authMessage" style="color: var(--danger); font-size: 12px; margin-top: 15px; min-height: 18px;"></p>
+    </div>
+</div>
     <div class="no-print app-container">
         
         <header class="top-bar">
