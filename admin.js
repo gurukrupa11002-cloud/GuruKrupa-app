@@ -36,11 +36,16 @@ async function checkAdminAccess() {
 async function loadUsers() {
     const { data: profiles, error } = await supabaseClient
         .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false }); // Newest first
+        .select('*'); // <-- Removed the .order() line that caused the crash!
 
     const tbody = document.getElementById('userTableBody');
     tbody.innerHTML = '';
+
+    if (error) {
+        console.error("Database Error:", error);
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--danger); padding: 20px;">Error loading users.</td></tr>`;
+        return;
+    }
 
     profiles.forEach(user => {
         const tr = document.createElement('tr');
