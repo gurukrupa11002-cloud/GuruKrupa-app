@@ -43,11 +43,19 @@ async function checkSession() {
 
 // Constantly watch for session changes or expirations in the background
 supabaseClient.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' && !session) {
+    if (event === 'PASSWORD_RECOVERY') {
+        // They clicked the email link! Show the Update Password screen.
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('paymentScreen').style.display = 'none';
+        document.querySelector('.app-container').style.display = 'none';
+        document.getElementById('updatePasswordScreen').style.display = 'flex';
+    } 
+    else if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
         // If their security token dies, instantly lock the app
         document.getElementById('authScreen').style.display = 'flex';
         document.getElementById('paymentScreen').style.display = 'none';
         document.querySelector('.app-container').style.display = 'none';
+        document.getElementById('updatePasswordScreen').style.display = 'none';
     }
 });
 
@@ -96,6 +104,54 @@ async function handleLogout() {
         alert("Error logging out: " + error.message);
     } else {
         // Refresh the page. Because they have no session, checkSession() will automatically kick them back to the login screen!
+        window.location.reload(); 
+    }
+}
+async function handlePasswordReset() {
+    const email = document.getElementById('emailInput').value;
+    const msg = document.getElementById('authMessage');
+
+    if (!email) {
+        msg.style.color = "var(--danger)";
+        msg.innerText = "Please enter your email address in the box first.";
+        return;
+    }
+
+    msg.style.color = "var(--text-muted)";
+    msg.innerText = "Sending reset link...";
+
+    // Tell Supabase to send the email and bring them back to this exact webpage
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/index.html',
+    });
+
+    if (error) {
+        msg.style.color = "var(--danger)";
+        msg.innerText = error.message;
+    } else {
+        msg.style.color = "var(--accent-primary)";
+        msg.innerText = "Check your email for the reset link!";
+    }
+}
+async function saveNewPassword() {
+    const newPassword = document.getElementById('newPasswordInput').value;
+    const msg = document.getElementById('updateMsg');
+
+    if (!newPassword || newPassword.length < 6) {
+        msg.innerText = "Password must be at least 6 characters.";
+        return;
+    }
+
+    msg.style.color = "var(--text-muted)";
+    msg.innerText = "Saving...";
+
+    const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+
+    if (error) {
+        msg.style.color = "var(--danger)";
+        msg.innerText = error.message;
+    } else {
+        alert("Password updated successfully! Please log in with your new password.");
         window.location.reload(); 
     }
 }
