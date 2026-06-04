@@ -1,7 +1,7 @@
 // --- Supabase Initialization ---
-const supabaseUrl = 'https://kqgtomdvgpiuvfuoiyjw.supabase.co'; // Paste URL here
-const supabaseKey = 'sb_publishable_nQuk3NkG2oB2zESabijRMA_fGoOxgNT'; // Paste Anon Key here
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = 'https://kqgtomdvgpiuvfuoiyjw.supabase.co'; 
+const supabaseKey = 'sb_publishable_nQuk3NkG2oB2zESabijRMA_fGoOxgNT'; 
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // --- Authentication Logic ---
 document.addEventListener("DOMContentLoaded", () => {
@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function checkSession() {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
     
     if (session) {
         // User is logged in! Hide the auth screen and show the app
@@ -34,7 +34,7 @@ async function handleSignUp() {
     msg.style.color = "var(--text-muted)";
     msg.innerText = "Creating account...";
     
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
     
     if (error) {
         msg.style.color = "var(--danger)";
@@ -53,7 +53,7 @@ async function handleLogin() {
     msg.style.color = "var(--text-muted)";
     msg.innerText = "Logging in...";
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     
     if (error) {
         msg.style.color = "var(--danger)";
