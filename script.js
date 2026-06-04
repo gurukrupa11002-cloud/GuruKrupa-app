@@ -14,14 +14,29 @@ async function checkSession() {
     const { data: { session }, error } = await supabaseClient.auth.getSession();
     
     if (session) {
-        // User is logged in! Hide the auth screen and show the app
+        // User is logged in! Hide the auth screen
         document.getElementById('authScreen').style.display = 'none';
-        document.querySelector('.app-container').style.display = 'flex';
         
-        // TODO: Next step is checking if their payment status is 'cleared'
+        // Fetch their payment status from the profiles table
+        const { data: profile, error: profileError } = await supabaseClient
+            .from('profiles')
+            .select('payment_status')
+            .eq('id', session.user.id)
+            .single();
+
+        if (profile && profile.payment_status === 'cleared') {
+            // Fully Unlocked - Show the workspace
+            document.getElementById('paymentScreen').style.display = 'none';
+            document.querySelector('.app-container').style.display = 'flex';
+        } else {
+            // Locked - Show the Payment Pending screen
+            document.querySelector('.app-container').style.display = 'none';
+            document.getElementById('paymentScreen').style.display = 'flex';
+        }
     } else {
         // Not logged in, ensure auth screen is visible
         document.getElementById('authScreen').style.display = 'flex';
+        document.getElementById('paymentScreen').style.display = 'none';
         document.querySelector('.app-container').style.display = 'none';
     }
 }

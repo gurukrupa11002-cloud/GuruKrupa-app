@@ -28,6 +28,22 @@
         <p id="authMessage" style="color: var(--danger); font-size: 12px; margin-top: 15px; min-height: 18px;"></p>
     </div>
 </div>
+<div id="paymentScreen" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 99; position: absolute; width: 100%;">
+    <div style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 400px; text-align: center; border: 1px solid var(--border-color);">
+        <div style="font-size: 40px; margin-bottom: 15px;">🔒</div>
+        <h2 style="margin-top: 0; color: var(--brand-dark);">Payment Pending</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5;">Your account has been created successfully, but your access is currently locked pending payment verification.</p>
+        
+        <div style="background: #f8fafc; padding: 15px; border-radius: var(--radius-md); border: 1px dashed #cbd5e1; margin-bottom: 20px;">
+            <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600;">Scan to Pay via UPI:</p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=clientupi@bank" alt="UPI QR" style="width: 150px; height: 150px; border-radius: 8px;">
+            <p style="margin: 10px 0 0 0; font-size: 11px; color: var(--text-muted);">UPI ID: yourclient@upi</p>
+        </div>
+
+        <button class="btn btn-outline-primary full-width" onclick="checkSession()">I have paid, refresh status</button>
+        <button class="btn btn-glass full-width" style="margin-top: 10px; color: var(--text-muted); border-color: var(--border-color);" onclick="supabaseClient.auth.signOut().then(() => location.reload())">Log Out</button>
+    </div>
+</div>
     <div class="no-print app-container">
         
         <header class="top-bar">
