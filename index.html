@@ -7,114 +7,75 @@
     <title>SMG Infosolutions - Premium Engineering Studio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js" defer></script>
 </head>
 
 <body>
-    <div id="authScreen"
-        style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 100; position: absolute; width: 100%;">
-        <div
-            style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 320px; text-align: center; border: 1px solid var(--border-color);">
+    <div id="authScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 100; position: absolute; width: 100%;">
+        <div style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 320px; text-align: center; border: 1px solid var(--border-color);">
             <div class="brand-icon" style="font-size: 32px; margin-bottom: 10px; display: inline-block;">📐</div>
             <h2 style="margin-top: 0; color: var(--brand-dark);">SMG Studio</h2>
-            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Sign in to access your workspace
-            </p>
-
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Sign in to access your workspace</p>
             <input type="email" id="emailInput" placeholder="Email Address" style="margin-bottom: 12px;">
             <input type="password" id="passwordInput" placeholder="Password" style="margin-bottom: 20px;">
-
-            <button class="btn btn-gradient full-width shadow-hover" onclick="handleLogin()"
-                style="margin-bottom: 10px;">Log In</button>
+            <button class="btn btn-gradient full-width shadow-hover" onclick="handleLogin()" style="margin-bottom: 10px;">Log In</button>
             <button class="btn btn-outline-primary full-width" onclick="handleSignUp()">Create Account</button>
-            <p style="text-align: center; margin-top: 15px;">
-                <a href="javascript:void(0)" onclick="handlePasswordReset()"
-                    style="color: var(--accent-primary); font-size: 12px; text-decoration: none;">Forgot Password?</a>
-            </p>
-
             <p id="authMessage" style="color: var(--danger); font-size: 12px; margin-top: 15px; min-height: 18px;"></p>
         </div>
     </div>
     
-    <div id="paymentScreen"
-        style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 99; position: absolute; width: 100%;">
-        <div
-            style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 400px; text-align: center; border: 1px solid var(--border-color);">
+    <div id="paymentScreen" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 99; position: absolute; width: 100%;">
+        <div style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 400px; text-align: center; border: 1px solid var(--border-color);">
             <div style="font-size: 40px; margin-bottom: 15px;">🔒</div>
             <h2 style="margin-top: 0; color: var(--brand-dark);">Payment Pending</h2>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5;">Your account
-                has been created successfully, but your access is currently locked pending payment verification.</p>
-
-            <div
-                style="background: #f8fafc; padding: 15px; border-radius: var(--radius-md); border: 1px dashed #cbd5e1; margin-bottom: 20px;">
-                <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600;">Scan to Pay via UPI:</p>
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=clientupi@bank"
-                    alt="UPI QR" style="width: 150px; height: 150px; border-radius: 8px;">
-                <p style="margin: 10px 0 0 0; font-size: 11px; color: var(--text-muted);">UPI ID: yourclient@upi</p>
-            </div>
-
-            <button class="btn btn-outline-primary full-width" onclick="checkSession()">I have paid, refresh
-                status</button>
-            <button class="btn btn-glass full-width"
-                style="margin-top: 10px; color: var(--text-muted); border-color: var(--border-color);"
-                onclick="supabaseClient.auth.signOut().then(() => location.reload())">Log Out</button>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5;">Your account is locked pending payment verification.</p>
+            <button class="btn btn-outline-primary full-width" onclick="checkSession()">I have paid, refresh status</button>
+            <button class="btn btn-glass full-width" style="margin-top: 10px; color: var(--text-muted); border-color: var(--border-color);" onclick="supabaseClient.auth.signOut().then(() => location.reload())">Log Out</button>
         </div>
     </div>
-    
-    <div id="updatePasswordScreen"
-        style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 101; position: absolute; width: 100%;">
-        <div
-            style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 320px; text-align: center; border: 1px solid var(--border-color);">
-            <div style="font-size: 40px; margin-bottom: 15px;">🔑</div>
-            <h2 style="margin-top: 0; color: var(--brand-dark);">Reset Password</h2>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px;">Please enter your new secure
-                password.</p>
 
-            <input type="password" id="newPasswordInput" placeholder="New Password" style="margin-bottom: 15px;">
-
-            <button class="btn btn-gradient full-width" onclick="saveNewPassword()">Save Password</button>
-            <p id="updateMsg" style="color: var(--danger); font-size: 12px; margin-top: 15px; min-height: 18px;"></p>
+    <div id="cloudBrowser" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div style="background: white; padding: 30px; border-radius: var(--radius-lg); width: 600px; max-height: 80vh; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: var(--brand-dark);">☁️ Your Cloud Projects</h2>
+                <button class="btn btn-glass" style="color: var(--text-muted); border-color: var(--border-color);" onclick="document.getElementById('cloudBrowser').style.display='none'">Close</button>
+            </div>
+            <div id="cloudProjectList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                </div>
         </div>
     </div>
 
     <div class="no-print app-container">
-
         <header class="top-bar">
             <div class="brand">
                 <div class="brand-icon">📐</div>
                 <div>
                     <h1>SMG Infosolutions</h1>
-                    <span class="badge">Quotation & Drawing Studio</span>
+                    <span class="badge">Cloud Quotation Studio</span>
                 </div>
             </div>
             <div class="global-actions">
+                <button class="btn btn-glass" onclick="saveProjectToCloud()">☁️ Save to Cloud</button>
+                <button class="btn btn-glass" onclick="openCloudBrowser()">☁️ Load from Cloud</button>
+                
                 <button class="btn btn-danger" onclick="createNewProject()">Reset Form</button>
                 <button class="btn btn-gradient print-btn" onclick="window.print()">🖨️ Export PDF</button>
-
-                <button class="btn btn-glass" style="border-color: rgba(239, 68, 68, 0.5); color: #fca5a5;"
-                    onclick="handleLogout()">🚪 Log Out</button>
+                <button class="btn btn-glass" style="border-color: rgba(239, 68, 68, 0.5); color: #fca5a5;" onclick="handleLogout()">🚪 Log Out</button>
             </div>
         </header>
 
         <main class="workspace">
-
             <section class="panel">
                 <div class="panel-header">
                     <span class="step-num">1</span> Project Setup
                 </div>
                 <div class="panel-body">
-
-                    <button class="btn btn-outline-primary full-width"
-                        onclick="document.getElementById('logoInput').click()">
-                        📷 Upload Client / Company Logo
-                    </button>
-                    <input type="file" id="logoInput" class="hidden" accept="image/*"
-                        onchange="handleLogoUpload(event)">
-
+                    <button class="btn btn-outline-primary full-width" onclick="document.getElementById('logoInput').click()">📷 Upload Client / Company Logo</button>
+                    <input type="file" id="logoInput" class="hidden" accept="image/*" onchange="handleLogoUpload(event)">
+                    
                     <div class="card-section">
                         <label>Client & Site Details</label>
                         <div class="input-stack">
@@ -126,8 +87,7 @@
 
                     <div class="card-section">
                         <label>Welcome Letter</label>
-                        <textarea id="welcomeText" rows="4"
-                            oninput="renderProject()">Project Commencement: Welcome to SMG Infosolutions Pvt. Ltd.
+                        <textarea id="welcomeText" rows="4" oninput="renderProject()">Project Commencement: Welcome to SMG Infosolutions Pvt. Ltd.
 Subject: Moving forward with your SMG Infosolutions Pvt. Ltd. project
 
 We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ourselves on quality and efficiency. Attached are the technical line drawings for your review. Please verify all specifications to align with your project requirements.</textarea>
@@ -135,21 +95,14 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
 
                     <div class="card-section">
                         <label>Disclaimer</label>
-                        <textarea id="disclaimerText" rows="2"
-                            oninput="renderProject()">THIS DRAWING IS FOR REFERENCE ONLY. ACTUAL PRODUCT PROPORTIONS MAY VARY. APPROVED DRAWINGS ARE CONSIDERED FINAL. FACTORY CONTACT: 9320307644.</textarea>
+                        <textarea id="disclaimerText" rows="2" oninput="renderProject()">THIS DRAWING IS FOR REFERENCE ONLY. ACTUAL PRODUCT PROPORTIONS MAY VARY. APPROVED DRAWINGS ARE CONSIDERED FINAL. FACTORY CONTACT: 9320307644.</textarea>
                     </div>
 
                     <div class="card-section highlight-section">
                         <label class="accent-label">Base Frame Dimensions</label>
                         <div class="size-input-row">
-                            <div class="input-mini-flex">
-                                <span class="addon">W</span>
-                                <input type="number" id="w" placeholder="0.00" oninput="initBase()">
-                            </div>
-                            <div class="input-mini-flex">
-                                <span class="addon">H</span>
-                                <input type="number" id="h" placeholder="0.00" oninput="initBase()">
-                            </div>
+                            <div class="input-mini-flex"><span class="addon">W</span><input type="number" id="w" placeholder="0.00" oninput="initBase()"></div>
+                            <div class="input-mini-flex"><span class="addon">H</span><input type="number" id="h" placeholder="0.00" oninput="initBase()"></div>
                             <div class="input-mini-flex">
                                 <span class="addon">Unit</span>
                                 <select id="unit" onchange="initBase()">
@@ -168,11 +121,9 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
                     <span class="step-num">2</span> Technical Specs
                 </div>
                 <div class="panel-body">
-
                     <div class="card-section">
                         <label>Asset Identification</label>
-                        <input type="text" id="winTag" placeholder="e.g., Master Bedroom Window (W1)"
-                            class="hero-input">
+                        <input type="text" id="winTag" placeholder="e.g., Master Bedroom Window (W1)" class="hero-input">
                     </div>
 
                     <div class="spec-grid">
@@ -188,30 +139,13 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
                                 <option value="20 MM Sliding Series">20 MM Sliding Series</option>
                                 <option value="MANUAL">Custom Entry...</option>
                             </select>
-                            <input type="text" id="seriesManual" class="hidden manual-input"
-                                placeholder="Enter Custom Series" oninput="drawPreview()">
+                            <input type="text" id="seriesManual" class="hidden manual-input" placeholder="Enter Custom Series" oninput="drawPreview()">
                         </div>
 
-                        <div class="form-control">
-                            <label>Glass Spec</label>
-                            <input type="text" id="glassSpec" placeholder="Type / Thickness" oninput="drawPreview()">
-                        </div>
-
-                        <div class="form-control">
-                            <label>Color Finish</label>
-                            <input type="text" id="colorSpec" placeholder="Profile Color" oninput="drawPreview()">
-                        </div>
-
-                        <div class="form-control">
-                            <label>Lock Type</label>
-                            <input type="text" id="lockSpec" placeholder="Hardware Type" oninput="drawPreview()">
-                        </div>
-
-                        <div class="form-control">
-                            <label>Lock Position</label>
-                            <input type="text" id="lockHSpec" placeholder="Position" value="CENTRE"
-                                oninput="drawPreview()">
-                        </div>
+                        <div class="form-control"><label>Glass Spec</label><input type="text" id="glassSpec" placeholder="Type / Thickness" oninput="drawPreview()"></div>
+                        <div class="form-control"><label>Color Finish</label><input type="text" id="colorSpec" placeholder="Profile Color" oninput="drawPreview()"></div>
+                        <div class="form-control"><label>Lock Type</label><input type="text" id="lockSpec" placeholder="Hardware Type" oninput="drawPreview()"></div>
+                        <div class="form-control"><label>Lock Position</label><input type="text" id="lockHSpec" placeholder="Position" value="CENTRE" oninput="drawPreview()"></div>
 
                         <div class="form-control">
                             <label>Mesh Option</label>
@@ -223,33 +157,20 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
                                 <option value="NO MESH">NO MESH</option>
                                 <option value="MANUAL">Custom Entry...</option>
                             </select>
-                            <input type="text" id="meshManual" class="hidden manual-input"
-                                placeholder="Enter Custom Mesh" oninput="drawPreview()">
+                            <input type="text" id="meshManual" class="hidden manual-input" placeholder="Enter Custom Mesh" oninput="drawPreview()">
                         </div>
 
-                        <div class="form-control">
-                            <label>Area in Sq.ft</label>
-                            <input type="number" id="areaSpec" placeholder="Enter Area" oninput="drawPreview()">
-                        </div>
-
-                        <div class="form-control">
-                            <label>Rate in Sq.ft</label>
-                            <input type="number" id="rateSpec" placeholder="Enter Rate" oninput="drawPreview()">
-                        </div>
+                        <div class="form-control"><label>Area in Sq.ft</label><input type="number" id="areaSpec" placeholder="Enter Area" oninput="drawPreview()"></div>
+                        <div class="form-control"><label>Rate in Sq.ft</label><input type="number" id="rateSpec" placeholder="Enter Rate" oninput="drawPreview()"></div>
                     </div>
 
                     <div class="card-section">
                         <label>Engineering Notes</label>
-                        <textarea id="notes" rows="2" placeholder="Special requirements..."
-                            oninput="drawPreview()"></textarea>
+                        <textarea id="notes" rows="2" placeholder="Special requirements..." oninput="drawPreview()"></textarea>
                     </div>
 
                     <input type="hidden" id="editIndex" value="-1">
-                    <button class="btn btn-gradient full-width large-text shadow-hover" id="addBtn"
-                        onclick="addOrUpdateWindow()">
-                        ✨ Generate & Add to Project
-                    </button>
-
+                    <button class="btn btn-gradient full-width large-text shadow-hover" id="addBtn" onclick="addOrUpdateWindow()">✨ Generate & Add to Project</button>
                 </div>
             </section>
 
@@ -259,20 +180,13 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
                     <button class="btn btn-soft btn-sm" onclick="undoAction()">⟲ Undo Action</button>
                 </div>
                 <div class="panel-body render-area">
-                    <div class="canvas-wrapper">
-                        <canvas id="previewCanvas" width="500" height="580"></canvas>
-                    </div>
-
+                    <div class="canvas-wrapper"><canvas id="previewCanvas" width="500" height="580"></canvas></div>
                     <div class="parts-manager-title">Structure Manager</div>
                     <div id="partsManager" class="parts-container">
-                        <div class="empty-state">
-                            <div class="empty-icon">📏</div>
-                            Input dimensions to initialize structural grid
-                        </div>
+                        <div class="empty-state"><div class="empty-icon">📏</div>Input dimensions to initialize structural grid</div>
                     </div>
                 </div>
             </section>
-
         </main>
     </div>
 
@@ -281,53 +195,24 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
             ↓ Generated Project Documents ↓
         </div>
         <div id="welcomePage" class="welcome-box">
-            <div class="welcome-logo-wrapper">
-                <img id="welcomeLogo" src="logo.png" alt="Logo" class="header-logo" onerror="this.style.display='none'">
-            </div>
+            <div class="welcome-logo-wrapper"><img id="welcomeLogo" src="logo.png" alt="Logo" class="header-logo" onerror="this.style.display='none'"></div>
             <div class="project-info-block">
                 <table class="meta-table">
-                    <tr>
-                        <td><b>CLIENT:</b></td>
-                        <td id="printClientName">---</td>
-                    </tr>
-                    <tr>
-                        <td><b>SITE:</b></td>
-                        <td id="printSite">---</td>
-                    </tr>
-                    <tr>
-                        <td><b>DATE:</b></td>
-                        <td id="printDate">---</td>
-                    </tr>
+                    <tr><td><b>CLIENT:</b></td><td id="printClientName">---</td></tr>
+                    <tr><td><b>SITE:</b></td><td id="printSite">---</td></tr>
+                    <tr><td><b>DATE:</b></td><td id="printDate">---</td></tr>
                 </table>
             </div>
             <h1 class="document-title">PROPOSAL & DRAWINGS</h1>
             <p id="printWelcomeLetter" class="welcome-letter-text"></p>
-            <div id="disclaimerArea" class="disclaimer-box">
-                <b>DISCLAIMER:</b> <span id="printDisclaimerText"></span>
-            </div>
+            <div id="disclaimerArea" class="disclaimer-box"><b>DISCLAIMER:</b> <span id="printDisclaimerText"></span></div>
         </div>
 
         <table id="drawingsTable" style="display:none; width: 1080px; margin: 0 auto; background: transparent;">
-            <thead>
-                <tr>
-                    <td>
-                        <div id="headerDisplay" class="project-header">
-                            <img id="headerLogo" src="logo.png" alt="Logo" class="header-logo"
-                                onerror="this.style.display='none'">
-                        </div>
-                    </td>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <div id="windowList" class="window-list-container" style="display: flex; flex-wrap: wrap; justify-content: center;"></div>
-                    </td>
-                </tr>
-            </tbody>
+            <thead><tr><td><div id="headerDisplay" class="project-header"><img id="headerLogo" src="logo.png" alt="Logo" class="header-logo" onerror="this.style.display='none'"></div></td></tr></thead>
+            <tbody><tr><td><div id="windowList" class="window-list-container" style="display: flex; flex-wrap: wrap; justify-content: center;"></div></td></tr></tbody>
         </table>
     </div>
 
 </body>
-
 </html>

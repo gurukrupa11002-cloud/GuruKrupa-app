@@ -3,6 +3,8 @@ const supabaseUrl = 'https://kqgtomdvgpiuvfuoiyjw.supabase.co';
 const supabaseKey = 'sb_publishable_nQuk3NkG2oB2zESabijRMA_fGoOxgNT'; 
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+let currentCloudProjectId = null; // Tracks if we are editing an existing cloud project
+
 // --- Authentication Logic ---
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelector('.app-container').style.display = 'none';
@@ -15,7 +17,7 @@ async function checkSession() {
     if (session) {
         document.getElementById('authScreen').style.display = 'none';
         
-        const { data: profile, error: profileError } = await supabaseClient
+        const { data: profile } = await supabaseClient
             .from('profiles')
             .select('payment_status')
             .eq('id', session.user.id)
@@ -24,6 +26,8 @@ async function checkSession() {
         if (profile && profile.payment_status === 'cleared') {
             document.getElementById('paymentScreen').style.display = 'none';
             document.querySelector('.app-container').style.display = 'flex';
+            // Auto-load last work from cloud removed to prevent overwriting active memory. 
+            // Users will actively click "Load from Cloud" instead.
         } else {
             document.querySelector('.app-container').style.display = 'none';
             document.getElementById('paymentScreen').style.display = 'flex';
@@ -35,90 +39,166 @@ async function checkSession() {
     }
 }
 
-supabaseClient.auth.onAuthStateChange((event, session) => {
-    if (event === 'PASSWORD_RECOVERY') {
-        document.getElementById('authScreen').style.display = 'none';
-        document.getElementById('paymentScreen').style.display = 'none';
-        document.querySelector('.app-container').style.display = 'none';
-        document.getElementById('updatePasswordScreen').style.display = 'flex';
-    } 
-    else if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
-        document.getElementById('authScreen').style.display = 'flex';
-        document.getElementById('paymentScreen').style.display = 'none';
-        document.querySelector('.app-container').style.display = 'none';
-        document.getElementById('updatePasswordScreen').style.display = 'none';
-    }
-});
-
 async function handleSignUp() {
     const email = document.getElementById('emailInput').value;
     const password = document.getElementById('passwordInput').value;
     const msg = document.getElementById('authMessage');
+    msg.style.color = "var(--text-muted)"; msg.innerText = "Creating account...";
     
-    msg.style.color = "var(--text-muted)";
-    msg.innerText = "Creating account...";
-    
-    const { data, error } = await supabaseClient.auth.signUp({ email, password });
-    
-    if (error) {
-        msg.style.color = "var(--danger)";
-        msg.innerText = error.message;
-    } else {
-        msg.style.color = "var(--accent-primary)";
-        msg.innerText = "Account created! You can now log in.";
-    }
+    const { error } = await supabaseClient.auth.signUp({ email, password });
+    if (error) { msg.style.color = "var(--danger)"; msg.innerText = error.message; } 
+    else { msg.style.color = "var(--accent-primary)"; msg.innerText = "Account created! You can now log in."; }
 }
 
 async function handleLogin() {
     const email = document.getElementById('emailInput').value;
     const password = document.getElementById('passwordInput').value;
     const msg = document.getElementById('authMessage');
-    
-    msg.style.color = "var(--text-muted)";
-    msg.innerText = "Logging in...";
+    msg.style.color = "var(--text-muted)"; msg.innerText = "Logging in...";
 
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) { msg.style.color = "var(--danger)"; msg.innerText = error.message; } 
+    else { msg.innerText = ""; checkSession(); }
+}
+
+async function handleLogout() {
+    await supabaseClient.auth.signOut();
+    window.location.reload(); 
+}
+
+// ============================================
+// --- CLOUD SYNCHRONIZATION LOGIC (NEW) ---
+// ============================================
+
+async function saveProjectToCloud() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return alert("You must be logged in to save.");
+
+    const clientName = document.getElementById("clientName").value || "Untitled Client";
+    const siteLoc = document.getElementById("siteLoc").value;
     
-    if (error) {
-        msg.style.color = "var(--danger)";
-        msg.innerText = error.message;
+    const payload = {
+        user_id: session.user.id,
+        client_name: clientName,
+        site_location: siteLoc,
+        project_date: document.getElementById("projDate").value,
+        welcome_text: document.getElementById("welcomeText").value,
+        disclaimer_text: document.getElementById("disclaimerText").value,
+        windows_data: projectWindows // The massive JSON array of all drawings
+    };
+
+    // Change button text to show loading
+    const btn = document.querySelector('.global-actions button:first-child');
+    const originalText = btn.innerText;
+    btn.innerText = "☁️ Saving...";
+
+    let errorObj = null;
+
+    if (currentCloudProjectId) {
+        // Update existing project
+        const { error } = await supabaseClient.from('quotations').update(payload).eq('id', currentCloudProjectId);
+        errorObj = error;
     } else {
-        msg.innerText = "";
-        checkSession();
+        // Insert new project
+        const { data, error } = await supabaseClient.from('quotations').insert([payload]).select();
+        errorObj = error;
+        if (data && data.length > 0) currentCloudProjectId = data[0].id;
+    }
+
+    if (errorObj) {
+        alert("Failed to save to cloud: " + errorObj.message);
+    } else {
+        btn.innerText = "✅ Saved!";
+        setTimeout(() => btn.innerText = originalText, 2000);
     }
 }
-async function handleLogout() {
-    const { error } = await supabaseClient.auth.signOut();
-    if (error) { alert("Error logging out: " + error.message); } else { window.location.reload(); }
-}
-async function handlePasswordReset() {
-    const email = document.getElementById('emailInput').value;
-    const msg = document.getElementById('authMessage');
-    if (!email) { msg.style.color = "var(--danger)"; msg.innerText = "Please enter your email address in the box first."; return; }
-    msg.style.color = "var(--text-muted)";
-    msg.innerText = "Sending reset link...";
-    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/index.html', });
-    if (error) { msg.style.color = "var(--danger)"; msg.innerText = error.message; } else { msg.style.color = "var(--accent-primary)"; msg.innerText = "Check your email for the reset link!"; }
-}
-async function saveNewPassword() {
-    const newPassword = document.getElementById('newPasswordInput').value;
-    const msg = document.getElementById('updateMsg');
-    if (!newPassword || newPassword.length < 6) { msg.innerText = "Password must be at least 6 characters."; return; }
-    msg.style.color = "var(--text-muted)"; msg.innerText = "Saving...";
-    const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
-    if (error) { msg.style.color = "var(--danger)"; msg.innerText = error.message; } else { alert("Password updated successfully! Please log in with your new password."); window.location.reload(); }
+
+async function openCloudBrowser() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    document.getElementById('cloudBrowser').style.display = 'flex';
+    const list = document.getElementById('cloudProjectList');
+    list.innerHTML = "<p style='text-align:center;'>Fetching your projects...</p>";
+
+    const { data: projects, error } = await supabaseClient
+        .from('quotations')
+        .select('id, client_name, site_location, project_date, created_at')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        list.innerHTML = `<p style='color:red;'>Error loading projects: ${error.message}</p>`;
+        return;
+    }
+
+    if (projects.length === 0) {
+        list.innerHTML = "<p style='text-align:center;'>No projects found in the cloud.</p>";
+        return;
+    }
+
+    list.innerHTML = "";
+    projects.forEach(p => {
+        const dateStr = new Date(p.created_at).toLocaleDateString();
+        const div = document.createElement('div');
+        div.style.cssText = "padding: 15px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; background: #f8fafc;";
+        div.innerHTML = `
+            <div>
+                <h4 style="margin: 0 0 5px 0; color: var(--brand-dark);">${p.client_name}</h4>
+                <p style="margin: 0; font-size: 11px; color: var(--text-muted);">Site: ${p.site_location || 'N/A'} | Saved: ${dateStr}</p>
+            </div>
+            <button class="btn btn-primary" style="background: var(--accent-primary); color: white;" onclick="loadSpecificProject('${p.id}')">Load Data</button>
+        `;
+        list.appendChild(div);
+    });
 }
 
+async function loadSpecificProject(projectId) {
+    document.getElementById('cloudProjectList').innerHTML = "<p style='text-align:center;'>Downloading project data...</p>";
+    
+    const { data, error } = await supabaseClient
+        .from('quotations')
+        .select('*')
+        .eq('id', projectId)
+        .single();
 
+    if (error) {
+        alert("Error loading project: " + error.message);
+        return;
+    }
+
+    // Populate UI with fetched data
+    currentCloudProjectId = data.id;
+    document.getElementById("clientName").value = data.client_name || "";
+    document.getElementById("siteLoc").value = data.site_location || "";
+    document.getElementById("projDate").value = data.project_date || "";
+    document.getElementById("welcomeText").value = data.welcome_text || "";
+    document.getElementById("disclaimerText").value = data.disclaimer_text || "";
+    
+    projectWindows = data.windows_data || [];
+    
+    renderProject();
+    document.getElementById('cloudBrowser').style.display = 'none';
+}
+
+function createNewProject() { 
+    if (confirm("START FRESH? This will clear the screen (make sure you saved first!).")) { 
+        currentCloudProjectId = null;
+        projectWindows = [];
+        clearAll();
+        document.getElementById("clientName").value = "";
+        document.getElementById("siteLoc").value = "";
+        renderProject();
+    } 
+}
+
+// ============================================
 // --- Quotation Maker Core Logic ---
+// ============================================
 let projectWindows = []; 
 let currentBoxes = []; 
 let historyStack = [];
 let currentLogoData = "logo.png";
-
-document.addEventListener("DOMContentLoaded", () => {
-    loadAutoSave();
-});
 
 function saveHistory() { 
     historyStack.push(JSON.stringify(currentBoxes)); 
@@ -128,17 +208,9 @@ function saveHistory() {
 function undoAction() { 
     if (historyStack.length > 0) { 
         currentBoxes = JSON.parse(historyStack.pop()); 
-        renderPartsUI(); 
-        drawPreview(); 
+        renderPartsUI(); drawPreview(); 
     } 
 }
-
-window.addEventListener('keydown', (e) => { 
-    if ((e.ctrlKey || e.metaKey) && e.key === 'z') { 
-        e.preventDefault(); 
-        undoAction(); 
-    } 
-});
 
 function handleManualSeries(v) { document.getElementById('seriesManual').classList.toggle('hidden', v !== "MANUAL"); drawPreview(); }
 function handleManualMesh(v) { document.getElementById('meshManual').classList.toggle('hidden', v !== "MANUAL"); drawPreview(); }
@@ -174,8 +246,7 @@ function initBase() {
             let sW = w / oW, sH = h / oH; 
             currentBoxes.forEach(b => { b.x *= sW; b.y *= sH; b.w *= sW; b.h *= sH; }); 
         } 
-        renderPartsUI(); 
-        drawPreview();
+        renderPartsUI(); drawPreview();
     }
 }
 
@@ -209,10 +280,7 @@ function renderPartsUI() {
         }
 
         html += `<div class="part-card">
-            <div class="part-header">
-                <span>Part ${i+1}</span>
-                <span style="color:var(--text-muted); font-weight:500;">${fromBase(b.w).toFixed(2)} x ${fromBase(b.h).toFixed(2)}</span>
-            </div>
+            <div class="part-header"><span>Part ${i+1}</span><span style="color:var(--text-muted); font-weight:500;">${fromBase(b.w).toFixed(2)} x ${fromBase(b.h).toFixed(2)}</span></div>
             <div class="part-controls">
                 <div class="part-actions">
                     <button class="btn btn-micro" onclick="splitH(${i})">✂️ Split Horiz</button>
@@ -220,72 +288,28 @@ function renderPartsUI() {
                     <button class="btn btn-micro" onclick="editPart(${i})">📐 Edit Dims</button>
                     <button class="btn btn-micro btn-micro-danger" onclick="deletePart(${i})">🗑️ Delete</button>
                 </div>
-                <div class="part-settings">
-                    <label style="margin:0;">Type:</label> ${typeSelect} ${extraSettings}
-                </div>
-                <div id="gbar_${i}" class="gbar-container">
-                    <div style="font-weight:600; margin-bottom:10px; display:flex; justify-content:space-between; font-size:12px;">
-                        Internal Grid Design
-                        <button class="btn btn-micro" onclick="applyGToAll(${i})">Sync All Panels</button>
-                    </div>
-                    ${gBarsHtml}
-                </div>
+                <div class="part-settings"><label style="margin:0;">Type:</label> ${typeSelect} ${extraSettings}</div>
+                <div id="gbar_${i}" class="gbar-container"><div style="font-weight:600; margin-bottom:10px; display:flex; justify-content:space-between; font-size:12px;">Internal Grid Design<button class="btn btn-micro" onclick="applyGToAll(${i})">Sync All Panels</button></div>${gBarsHtml}</div>
             </div>
         </div>`;
     });
     
-    document.getElementById('partsManager').innerHTML = html || `<div class="empty-state">
-        <div class="empty-icon">📏</div>
-        Input dimensions to initialize structural grid
-    </div>`;
+    document.getElementById('partsManager').innerHTML = html || `<div class="empty-state"><div class="empty-icon">📏</div>Input dimensions to initialize structural grid</div>`;
 }
 
 function toggleGBar(idx) { let el = document.getElementById('gbar_'+idx); el.style.display = (el.style.display === 'block') ? 'none' : 'block'; }
 function updateGBar(pIdx, gIdx, field, val) { saveHistory(); if(!currentBoxes[pIdx].gBars[gIdx]) currentBoxes[pIdx].gBars[gIdx] = {h:0, v:0}; currentBoxes[pIdx].gBars[gIdx][field] = parseInt(val) || 0; drawPreview(); }
 function applyGToAll(idx) { saveHistory(); let b = currentBoxes[idx]; let first = b.gBars[0] || {h:0, v:0}; for(let j=0; j<b.p; j++) b.gBars[j] = { ...first }; renderPartsUI(); drawPreview(); }
 
-function splitH(idx) { 
-    saveHistory(); let b = currentBoxes[idx]; let vR = parseFloat(prompt(`ENTER TOP HEIGHT:`)); 
-    if (vR > 0 && toBase(vR) < b.h) { 
-        let val = toBase(vR); let pid = Date.now(); 
-        currentBoxes.splice(idx, 1, { ...b, id: pid, h: val, type: 'fixed', p: 1, gBars:[{h:0, v:0}], doorType:'1L' }, { ...b, id: pid+1, y: b.y + val, h: b.h - val, p: 1, gBars:[{h:0, v:0}], doorType:'1L' }); 
-        renderPartsUI(); drawPreview(); 
-    } 
-}
-
-function splitV(idx) { 
-    saveHistory(); let b = currentBoxes[idx]; let vR = parseFloat(prompt(`ENTER LEFT WIDTH:`)); 
-    if (vR > 0 && toBase(vR) < b.w) { 
-        let val = toBase(vR); let pid = Date.now(); 
-        currentBoxes.splice(idx, 1, { ...b, id: pid, w: val, type: 'fixed', p: 1, gBars:[{h:0, v:0}], doorType:'1L' }, { ...b, id: pid+1, x: b.x + val, w: b.w - val, p: 1, gBars:[{h:0, v:0}], doorType:'1L' }); 
-        renderPartsUI(); drawPreview(); 
-    } 
-}
-
-function editPart(idx) { 
-    saveHistory(); let b = currentBoxes[idx]; let n = currentBoxes[idx + 1] || currentBoxes[idx - 1]; if (!n) return alert("NO NEIGHBOR!"); 
-    let iN = (currentBoxes[idx + 1] === n); let axis = (b.y === n.y) ? 'V' : (b.x === n.x ? 'H' : null); 
-    if (axis === 'V') { let tW = fromBase(b.w + n.w); let nR = parseFloat(prompt(`NEW WIDTH:`)); if (nR > 0 && nR < tW) { let nV = toBase(nR); b.w = nV; n.w = toBase(tW) - nV; if (iN) n.x = b.x + b.w; else b.x = n.x + n.w; } } 
-    else if (axis === 'H') { let tH = fromBase(b.h + n.h); let nR = parseFloat(prompt(`NEW HEIGHT:`)); if (nR > 0 && nR < tH) { let nV = toBase(nR); b.h = nV; n.h = toBase(tH) - nV; if (iN) n.y = b.y + b.h; else b.y = n.y + n.h; } } 
-    renderPartsUI(); drawPreview(); 
-}
-
-function deletePart(idx) { 
-    if (currentBoxes.length <= 1) return alert("LAST PART!"); 
-    saveHistory(); let b = currentBoxes[idx]; let nI = (idx > 0) ? idx - 1 : idx + 1; let n = currentBoxes[nI]; 
-    if (b.x === n.x && b.w === n.w) { n.h += b.h; if (idx < nI) n.y = b.y; } else if (b.y === n.y && b.h === n.h) { n.w += b.w; if (idx < nI) n.x = b.x; } 
-    currentBoxes.splice(idx, 1); renderPartsUI(); drawPreview(); 
-}
-
+function splitH(idx) { saveHistory(); let b = currentBoxes[idx]; let vR = parseFloat(prompt(`ENTER TOP HEIGHT:`)); if (vR > 0 && toBase(vR) < b.h) { let val = toBase(vR); let pid = Date.now(); currentBoxes.splice(idx, 1, { ...b, id: pid, h: val, type: 'fixed', p: 1, gBars:[{h:0, v:0}], doorType:'1L' }, { ...b, id: pid+1, y: b.y + val, h: b.h - val, p: 1, gBars:[{h:0, v:0}], doorType:'1L' }); renderPartsUI(); drawPreview(); } }
+function splitV(idx) { saveHistory(); let b = currentBoxes[idx]; let vR = parseFloat(prompt(`ENTER LEFT WIDTH:`)); if (vR > 0 && toBase(vR) < b.w) { let val = toBase(vR); let pid = Date.now(); currentBoxes.splice(idx, 1, { ...b, id: pid, w: val, type: 'fixed', p: 1, gBars:[{h:0, v:0}], doorType:'1L' }, { ...b, id: pid+1, x: b.x + val, w: b.w - val, p: 1, gBars:[{h:0, v:0}], doorType:'1L' }); renderPartsUI(); drawPreview(); } }
+function editPart(idx) { saveHistory(); let b = currentBoxes[idx]; let n = currentBoxes[idx + 1] || currentBoxes[idx - 1]; if (!n) return alert("NO NEIGHBOR!"); let iN = (currentBoxes[idx + 1] === n); let axis = (b.y === n.y) ? 'V' : (b.x === n.x ? 'H' : null); if (axis === 'V') { let tW = fromBase(b.w + n.w); let nR = parseFloat(prompt(`NEW WIDTH:`)); if (nR > 0 && nR < tW) { let nV = toBase(nR); b.w = nV; n.w = toBase(tW) - nV; if (iN) n.x = b.x + b.w; else b.x = n.x + n.w; } } else if (axis === 'H') { let tH = fromBase(b.h + n.h); let nR = parseFloat(prompt(`NEW HEIGHT:`)); if (nR > 0 && nR < tH) { let nV = toBase(nR); b.h = nV; n.h = toBase(tH) - nV; if (iN) n.y = b.y + b.h; else b.y = n.y + n.h; } } renderPartsUI(); drawPreview(); }
+function deletePart(idx) { if (currentBoxes.length <= 1) return alert("LAST PART!"); saveHistory(); let b = currentBoxes[idx]; let nI = (idx > 0) ? idx - 1 : idx + 1; let n = currentBoxes[nI]; if (b.x === n.x && b.w === n.w) { n.h += b.h; if (idx < nI) n.y = b.y; } else if (b.y === n.y && b.h === n.h) { n.w += b.w; if (idx < nI) n.x = b.x; } currentBoxes.splice(idx, 1); renderPartsUI(); drawPreview(); }
 function updatePart(i, f, v) { saveHistory(); currentBoxes[i][f] = (f==='p') ? parseInt(v) : v; if(f==='p') { currentBoxes[i].gBars = Array.from({length: v}, () => ({h:0,v:0})); renderPartsUI(); } if(f==='type') renderPartsUI(); drawPreview(); }
 
 function drawTick(ctx, x, y, iV) { ctx.beginPath(); ctx.strokeStyle = "#0f172a"; ctx.lineWidth = 1.5; if(iV) { ctx.moveTo(x-5, y); ctx.lineTo(x+5, y); } else { ctx.moveTo(x, y-5); ctx.lineTo(x, y+5); } ctx.stroke(); }
 
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) { 
-    if(!text) return y; let tS = text.toUpperCase(); let cX = x; let line = ""; 
-    for (let i = 0; i < tS.length; i++) { let char = tS[i]; let tW = ctx.measureText(line + char).width; if (cX + tW > x + maxWidth) { ctx.fillText(line, cX, y); y += lineHeight; cX = x; line = char; } else { line += char; } } 
-    ctx.fillText(line, cX, y); return y + lineHeight; 
-}
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) { if(!text) return y; let tS = text.toUpperCase(); let cX = x; let line = ""; for (let i = 0; i < tS.length; i++) { let char = tS[i]; let tW = ctx.measureText(line + char).width; if (cX + tW > x + maxWidth) { ctx.fillText(line, cX, y); y += lineHeight; cX = x; line = char; } else { line += char; } } ctx.fillText(line, cX, y); return y + lineHeight; }
 
 function wrapSpecLine(ctx, label, value, x, y, maxWidth, lineHeight) {
     ctx.fillStyle = "#475569"; ctx.font="600 11px Arial"; let lblW = ctx.measureText(label).width; ctx.fillText(label, x, y);
@@ -296,9 +320,8 @@ function wrapSpecLine(ctx, label, value, x, y, maxWidth, lineHeight) {
 }
 
 function drawPreview() { 
-    let d = { 
-        w: parseFloat(document.getElementById("w").value)||0, h: parseFloat(document.getElementById("h").value)||0, unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: currentBoxes 
-    }; drawIndividual(document.getElementById("previewCanvas"), d, true); 
+    let d = { w: parseFloat(document.getElementById("w").value)||0, h: parseFloat(document.getElementById("h").value)||0, unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: currentBoxes }; 
+    drawIndividual(document.getElementById("previewCanvas"), d, true); 
 }
 
 function drawIndividual(canvas, d, isP) {
@@ -339,65 +362,38 @@ function drawIndividual(canvas, d, isP) {
 function addOrUpdateWindow() { 
     if(currentBoxes.length===0) return alert("ENTER SIZE"); 
     let d = { 
-        w: parseFloat(document.getElementById("w").value), h: parseFloat(document.getElementById("h").value), unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), 
-        area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: JSON.parse(JSON.stringify(currentBoxes)) 
+        w: parseFloat(document.getElementById("w").value), h: parseFloat(document.getElementById("h").value), unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: JSON.parse(JSON.stringify(currentBoxes)) 
     }; 
     let idx = parseInt(document.getElementById("editIndex").value); 
     if(idx === -1) projectWindows.push(d); else projectWindows[idx] = d; 
     
-    renderProject(); 
-    clearAll(); 
+    renderProject(); clearAll(); 
     
-    setTimeout(() => {
-        document.getElementById("projectSheet").scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
+    setTimeout(() => { document.getElementById("projectSheet").scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
 }
 
 function clearAll() { 
-    document.getElementById("w").value = ""; document.getElementById("h").value = ""; document.getElementById("winTag").value = ""; document.getElementById("notes").value = ""; document.getElementById("glassSpec").value = ""; document.getElementById("colorSpec").value = ""; document.getElementById("lockSpec").value = ""; document.getElementById("lockHSpec").value = "CENTRE"; document.getElementById("seriesSpec").value = ""; document.getElementById("seriesManual").value = ""; document.getElementById("seriesManual").classList.add("hidden"); 
-    document.getElementById("areaSpec").value = ""; document.getElementById("rateSpec").value = ""; document.getElementById("meshSpec").value = ""; document.getElementById("meshManual").value = ""; document.getElementById("meshManual").classList.add("hidden"); 
+    document.getElementById("w").value = ""; document.getElementById("h").value = ""; document.getElementById("winTag").value = ""; document.getElementById("notes").value = ""; document.getElementById("glassSpec").value = ""; document.getElementById("colorSpec").value = ""; document.getElementById("lockSpec").value = ""; document.getElementById("lockHSpec").value = "CENTRE"; document.getElementById("seriesSpec").value = ""; document.getElementById("seriesManual").value = ""; document.getElementById("seriesManual").classList.add("hidden"); document.getElementById("areaSpec").value = ""; document.getElementById("rateSpec").value = ""; document.getElementById("meshSpec").value = ""; document.getElementById("meshManual").value = ""; document.getElementById("meshManual").classList.add("hidden"); 
     currentBoxes = []; historyStack = []; document.getElementById('partsManager').innerHTML = `<div class="empty-state"><div class="empty-icon">📏</div>Input dimensions to initialize structural grid</div>`; document.getElementById("editIndex").value = "-1"; drawPreview(); 
 }
-
-function autoSave() { 
-    localStorage.setItem('.pdf_autosave', JSON.stringify({ 
-        client: document.getElementById("clientName").value, loc: document.getElementById("siteLoc").value, date: document.getElementById("projDate").value, welcome: document.getElementById("welcomeText").value, disclaimer: document.getElementById("disclaimerText").value, windows: projectWindows 
-    })); 
-}
-
-function loadAutoSave() { 
-    let s = localStorage.getItem('.pdf_autosave'); 
-    if (s) { 
-        let p = JSON.parse(s); document.getElementById("clientName").value = p.client || ""; document.getElementById("siteLoc").value = p.loc || ""; document.getElementById("projDate").value = p.date || ""; document.getElementById("welcomeText").value = p.welcome || ""; document.getElementById("disclaimerText").value = p.disclaimer || ""; projectWindows = p.windows || []; renderProject(); 
-    } 
-}
-
-function createNewProject() { if (confirm("CLEAR CURRENT PROJECT AND START FRESH?")) { localStorage.removeItem('.pdf_autosave'); location.reload(); } }
 
 function renderProject() {
     let hasW = projectWindows.length > 0;
     document.getElementById("welcomePage").style.display = hasW ? "block" : "none"; 
-    
     document.getElementById("projectSheet").style.display = hasW ? "block" : "none"; 
     document.getElementById("drawingsTable").style.display = hasW ? "table" : "none";
-    
     document.getElementById("printSite").innerText = (document.getElementById("siteLoc").value || "---").toUpperCase(); 
     document.getElementById("printDate").innerText = document.getElementById("projDate").value || "---"; 
     document.getElementById("printClientName").innerText = (document.getElementById("clientName").value || "---").toUpperCase();
     document.getElementById("printWelcomeLetter").innerText = document.getElementById("welcomeText").value.toUpperCase(); 
     document.getElementById("printDisclaimerText").innerText = document.getElementById("disclaimerText").value.toUpperCase();
-    
     let l = document.getElementById("windowList"); l.innerHTML = "";
-    
     projectWindows.forEach((win, i) => {
         let div = document.createElement("div"); div.className = "drawing-container";
-        div.innerHTML = `<button class="copy-btn" onclick="copyWindow(${i})">COPY</button>
-                         <button class="edit-btn-saved" onclick="editWindow(${i})">EDIT</button>
-                         <button class="del-btn-saved" onclick="deleteSaved(${i})">X</button>`;
+        div.innerHTML = `<button class="copy-btn" onclick="copyWindow(${i})">COPY</button><button class="edit-btn-saved" onclick="editWindow(${i})">EDIT</button><button class="del-btn-saved" onclick="deleteSaved(${i})">X</button>`;
         let cvs = document.createElement("canvas"); cvs.width = 346; cvs.height = 650; 
         div.appendChild(cvs); l.appendChild(div); drawIndividual(cvs, win, false);
     }); 
-    autoSave();
 }
 
 function deleteSaved(idx) { if(confirm("DELETE?")) { projectWindows.splice(idx,1); renderProject(); } }
