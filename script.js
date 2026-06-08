@@ -11,23 +11,51 @@ document.addEventListener("DOMContentLoaded", () => {
     checkSession();
 });
 
+// FIX: Dedicated UI toggle for Login, SignUp, and Reset Password
 function toggleAuthMode(mode) {
+    const msg = document.getElementById('authMessage');
+    msg.innerText = ""; // Clear old errors
+    
     if (mode === 'signup') {
         document.getElementById('authTitle').innerText = 'Create Account';
         document.getElementById('authSubtitle').innerText = 'Enter your details to register';
         document.getElementById('signupFields').style.display = 'block';
+        document.getElementById('passwordWrapper').style.display = 'block';
+        
         document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('resetBtn').style.display = 'none';
         document.getElementById('signupBtn').style.display = 'block';
-        document.getElementById('toggleSignUpBtn').style.display = 'none';
-        document.getElementById('toggleLoginBtn').style.display = 'block';
+        
+        document.getElementById('toggleSignUpText').style.display = 'none';
+        document.getElementById('toggleForgotText').style.display = 'none';
+        document.getElementById('toggleLoginText').style.display = 'block';
+    } else if (mode === 'reset') {
+        document.getElementById('authTitle').innerText = 'Reset Password';
+        document.getElementById('authSubtitle').innerText = 'Enter your email to receive a reset link';
+        document.getElementById('signupFields').style.display = 'none';
+        document.getElementById('passwordWrapper').style.display = 'none'; // Hide password!
+        
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('signupBtn').style.display = 'none';
+        document.getElementById('resetBtn').style.display = 'block';
+        
+        document.getElementById('toggleForgotText').style.display = 'none';
+        document.getElementById('toggleSignUpText').style.display = 'none';
+        document.getElementById('toggleLoginText').style.display = 'block';
     } else {
+        // Default Login Mode
         document.getElementById('authTitle').innerText = 'Welcome Back';
         document.getElementById('authSubtitle').innerText = 'Sign in to access your workspace';
         document.getElementById('signupFields').style.display = 'none';
-        document.getElementById('loginBtn').style.display = 'block';
+        document.getElementById('passwordWrapper').style.display = 'block';
+        
+        document.getElementById('resetBtn').style.display = 'none';
         document.getElementById('signupBtn').style.display = 'none';
-        document.getElementById('toggleSignUpBtn').style.display = 'block';
-        document.getElementById('toggleLoginBtn').style.display = 'none';
+        document.getElementById('loginBtn').style.display = 'block';
+        
+        document.getElementById('toggleLoginText').style.display = 'none';
+        document.getElementById('toggleForgotText').style.display = 'block';
+        document.getElementById('toggleSignUpText').style.display = 'block';
     }
 }
 
@@ -65,6 +93,13 @@ async function handleSignUp() {
     const address = document.getElementById('regAddress').value;
     const msg = document.getElementById('authMessage');
     
+    // FIX: Strict Validation for required fields
+    if(!email || !password || !name || !phone || !address) {
+        msg.style.color = "var(--danger)"; 
+        msg.innerText = "Please fill in all fields to create your account.";
+        return;
+    }
+    
     msg.style.color = "var(--text-muted)"; 
     msg.innerText = "Creating account...";
     
@@ -75,7 +110,7 @@ async function handleSignUp() {
         msg.innerText = error.message; 
     } else { 
         if(data.user) {
-            // Give the trigger a moment to create the profile row, then update it with client info
+            // Give trigger a moment to create row, then update with required client info
             setTimeout(async () => {
                 await supabaseClient.from('profiles').update({
                     full_name: name,
@@ -105,6 +140,41 @@ async function handleLogout() {
     await supabaseClient.auth.signOut();
     window.location.reload(); 
 }
+
+// FIX: Improved Forgot Password UX
+async function handlePasswordReset() {
+    const email = document.getElementById('emailInput').value;
+    const msg = document.getElementById('authMessage');
+    
+    if (!email) { 
+        msg.style.color = "var(--danger)"; 
+        msg.innerText = "Please enter your email address above to reset your password."; 
+        return; 
+    }
+    
+    msg.style.color = "var(--text-muted)";
+    msg.innerText = "Sending reset link...";
+    
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/index.html', });
+    
+    if (error) { 
+        msg.style.color = "var(--danger)"; 
+        msg.innerText = error.message; 
+    } else { 
+        msg.style.color = "var(--accent-primary)"; 
+        msg.innerText = "Success! Check your email for the secure reset link."; 
+    }
+}
+
+async function saveNewPassword() {
+    const newPassword = document.getElementById('newPasswordInput').value;
+    const msg = document.getElementById('updateMsg');
+    if (!newPassword || newPassword.length < 6) { msg.innerText = "Password must be at least 6 characters."; return; }
+    msg.style.color = "var(--text-muted)"; msg.innerText = "Saving...";
+    const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+    if (error) { msg.style.color = "var(--danger)"; msg.innerText = error.message; } else { alert("Password updated successfully! Please log in with your new password."); window.location.reload(); }
+}
+
 
 // --- CLOUD SYNCHRONIZATION LOGIC ---
 async function saveProjectToCloud() {
@@ -209,6 +279,7 @@ function createNewProject() {
     } 
 }
 
+
 // --- Quotation Maker Core Logic ---
 let projectWindows = []; let currentBoxes = []; let historyStack = []; let currentLogoData = "logo.png";
 function saveHistory() { historyStack.push(JSON.stringify(currentBoxes)); if (historyStack.length > 50) historyStack.shift(); }
@@ -276,9 +347,7 @@ function wrapSpecLine(ctx, label, value, x, y, maxWidth, lineHeight) {
 }
 
 function drawPreview() { 
-    let d = { 
-        w: parseFloat(document.getElementById("w").value)||0, h: parseFloat(document.getElementById("h").value)||0, unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: currentBoxes 
-    }; 
+    let d = { w: parseFloat(document.getElementById("w").value)||0, h: parseFloat(document.getElementById("h").value)||0, unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: currentBoxes }; 
     drawIndividual(document.getElementById("previewCanvas"), d, true); 
 }
 
@@ -307,8 +376,11 @@ function drawIndividual(canvas, d, isP) {
     if(!d.tag) { ctx.fillStyle = "#ef4444"; ctx.fillText("PENDING", sX + idLW, sY); } else { ctx.fillStyle = "#4f46e5"; ctx.fillText(d.tag.toUpperCase(), sX + idLW, sY); }
     sY += 24; ctx.fillStyle = "#0f172a"; ctx.font="bold 11px Arial"; ctx.fillText("ENGINEERING SPECIFICATIONS:", sX, sY); sY += 16;
     
-    // NEW: Calculate Total Rate
-    let calcTotal = (d.area && d.rate) ? "₹ " + (parseFloat(d.area) * parseFloat(d.rate)).toFixed(2) : "";
+    // FIX: Automatic Total Rate Calculation
+    let calcTotal = "";
+    if (d.area && d.rate && !isNaN(d.area) && !isNaN(d.rate)) {
+        calcTotal = "₹ " + (parseFloat(d.area) * parseFloat(d.rate)).toFixed(2);
+    }
 
     let sps = [
         {l:"SERIES SYSTEM: ", v:d.series}, {l:"GLASS: ", v:d.glass}, 
@@ -317,7 +389,6 @@ function drawIndividual(canvas, d, isP) {
         {l:"AREA (SQ.FT): ", v:d.area}, {l:"RATE / SQ.FT: ", v:d.rate},
         {l:"TOTAL RATE: ", v:calcTotal} 
     ];
-    
     sps.forEach(s => { sY = wrapSpecLine(ctx, s.l, s.v, sX, sY, mW, 15); });
     if(d.notes) { sY += 5; ctx.fillStyle = "#0f172a"; ctx.font="bold 11px Arial"; ctx.fillText("NOTES: ", sX, sY); sY += 15; ctx.font="11px Arial"; wrapText(ctx, d.notes, sX, sY, mW, 15); }
 }

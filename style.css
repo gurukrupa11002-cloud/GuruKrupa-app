@@ -39,13 +39,101 @@ body {
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+
+/* =========================================
+   NEW SPLIT-SCREEN AUTHENTICATION DESIGN
+   ========================================= */
+.auth-layout {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    background: #fff;
+    position: absolute;
+    z-index: 100;
+}
+
+.auth-banner {
+    flex: 1.2;
+    background: var(--brand-dark);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.4) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.4) 0px, transparent 50%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-banner::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=') repeat;
+}
+
+.auth-banner-content {
+    position: relative;
+    z-index: 2;
+    max-width: 400px;
+}
+
+.brand-icon-large { font-size: 48px; background: var(--accent-gradient); padding: 10px; border-radius: 12px; display: inline-block; margin-bottom: 20px;}
+.auth-banner-content h1 { font-size: 36px; margin: 0 0 10px 0; font-weight: 700; letter-spacing: -0.5px;}
+.auth-banner-content p { font-size: 16px; color: #cbd5e1; margin-bottom: 40px; }
+
+.auth-feature-list { display: flex; flex-direction: column; gap: 15px; }
+.feature-item { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; color: #f8fafc;}
+.feature-item span { background: rgba(255,255,255,0.1); padding: 4px; border-radius: 50%; color: var(--accent-secondary); font-size: 10px; }
+
+.auth-form-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-app);
+    padding: 20px;
+}
+
+.auth-form-box {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    padding: 40px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-color);
+}
+
+.auth-form-box h2 { margin: 0 0 5px 0; font-size: 24px; color: var(--brand-dark); font-weight: 600;}
+.auth-form-box p { margin: 0 0 25px 0; font-size: 14px; color: var(--text-muted); }
+
+.auth-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;}
+.auth-input { width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; font-family: inherit; margin-bottom: 20px; background: #f8fafc; transition: all 0.2s;}
+.auth-input:focus { outline: none; border-color: var(--accent-primary); background: #fff; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+
+.auth-btn { padding: 14px; font-size: 15px; border-radius: var(--radius-md); margin-top: 10px;}
+.auth-links { margin-top: 25px; text-align: center; border-top: 1px solid var(--border-color); padding-top: 20px;}
+.auth-links p { margin: 5px 0; font-size: 13px; }
+.auth-links a { color: var(--accent-primary); font-weight: 600; text-decoration: none; transition: color 0.2s; }
+.auth-links a:hover { color: var(--brand-dark); }
+.auth-msg { text-align: center; min-height: 20px; margin-top: 10px; font-weight: 500;}
+
+@media (max-width: 900px) {
+    .auth-layout { flex-direction: column; }
+    .auth-banner { display: none; } /* Hide banner on small screens */
+}
+/* ========================================= */
+
+
 .app-container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
-/* Header */
 .top-bar {
     background: rgba(15, 23, 42, 0.95);
     backdrop-filter: blur(10px);
@@ -74,7 +162,6 @@ body {
     flex: 1;
 }
 
-/* Premium Panels */
 .panel {
     background: var(--bg-panel);
     border: 1px solid var(--border-color);
@@ -113,7 +200,6 @@ body {
 
 .panel-body { padding: 20px; overflow-y: auto; flex: 1; }
 
-/* Forms & Modern Inputs */
 .card-section { margin-bottom: 20px; }
 .highlight-section { background: #f8fafc; padding: 15px; border-radius: var(--radius-md); border: 1px dashed #cbd5e1; }
 
@@ -197,19 +283,11 @@ input:focus, select:focus, textarea:focus {
     color: var(--text-main);
 }
 
-.input-mini-flex select {
-    padding-right: 22px !important;
-    cursor: pointer;
-}
+.input-mini-flex select { padding-right: 22px !important; cursor: pointer; }
 
 .input-mini-flex input[type="number"]::-webkit-inner-spin-button,
-.input-mini-flex input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-.input-mini-flex input[type="number"] {
-    -moz-appearance: textfield; 
-}
+.input-mini-flex input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.input-mini-flex input[type="number"] { -moz-appearance: textfield; }
 
 .spec-grid {
     display: grid;
@@ -219,7 +297,6 @@ input:focus, select:focus, textarea:focus {
 }
 .manual-input { margin-top: 6px; border-style: dashed; border-color: var(--accent-primary); }
 
-/* Premium Buttons */
 .btn {
     padding: 10px 16px;
     font-size: 13px;
@@ -261,7 +338,6 @@ input:focus, select:focus, textarea:focus {
 .full-width { width: 100%; }
 .large-text { font-size: 15px; padding: 14px; font-weight: 600; }
 
-/* Canvas Area */
 .render-area { display: flex; flex-direction: column; background: #f8fafc; border-top: 1px solid var(--border-color); }
 .canvas-wrapper {
     background: #fff;
@@ -272,10 +348,8 @@ input:focus, select:focus, textarea:focus {
     width: fit-content;
 }
 
-/* FIX: Ensure ONLY the preview canvas in the dashboard has height auto. Generated canvases stay rigid */
 #previewCanvas { background: white; max-width: 100%; height: auto; display: block; border: 1px solid #f1f5f9; border-radius: 4px; }
 
-/* Parts Manager */
 .parts-manager-title { font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 10px; }
 .parts-container { flex: 1; padding-right: 5px; }
 
@@ -343,7 +417,6 @@ input:focus, select:focus, textarea:focus {
     border-radius: 4px;
 }
 
-/* FIX: Restored exact box dimensions so the generated canvas fits perfectly */
 .drawing-container { 
     background: #fff; 
     border: 1px solid #000; 

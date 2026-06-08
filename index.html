@@ -14,45 +14,101 @@
 </head>
 
 <body>
-    <div id="authScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 100; position: absolute; width: 100%;">
-        <div style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 320px; text-align: center; border: 1px solid var(--border-color);">
-            <div class="brand-icon" style="font-size: 32px; margin-bottom: 10px; display: inline-block;">📐</div>
-            <h2 id="authTitle" style="margin-top: 0; color: var(--brand-dark);">Welcome Back</h2>
-            <p id="authSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Sign in to access your workspace</p>
-            
-            <div id="signupFields" style="display: none;">
-                <input type="text" id="regName" placeholder="Full Name / Company" style="margin-bottom: 12px;">
-                <input type="text" id="regPhone" placeholder="Phone Number" style="margin-bottom: 12px;">
-                <input type="text" id="regAddress" placeholder="City / Address" style="margin-bottom: 12px;">
+
+    <!-- ==========================================
+         NEW PREMIUM SPLIT-SCREEN AUTHENTICATION
+         ========================================== -->
+    <div id="authScreen" class="auth-layout">
+        <!-- Left Branding Side -->
+        <div class="auth-banner">
+            <div class="auth-banner-content">
+                <div class="brand-icon-large">📐</div>
+                <h1>SMG Infosolutions</h1>
+                <p>Enterprise Quotation & Drawing Studio</p>
+                <div class="auth-feature-list">
+                    <div class="feature-item"><span>✓</span> Precision Engineering Drafts</div>
+                    <div class="feature-item"><span>✓</span> Automated Quotation Logic</div>
+                    <div class="feature-item"><span>✓</span> Secure Cloud Synchronization</div>
+                </div>
             </div>
+        </div>
 
-            <input type="email" id="emailInput" placeholder="Email Address" style="margin-bottom: 12px;">
-            <input type="password" id="passwordInput" placeholder="Password" style="margin-bottom: 20px;">
-            
-            <button id="loginBtn" class="btn btn-gradient full-width shadow-hover" onclick="handleLogin()" style="margin-bottom: 10px;">Log In</button>
-            <button id="signupBtn" class="btn btn-gradient full-width shadow-hover" onclick="handleSignUp()" style="margin-bottom: 10px; display: none;">Create Account</button>
-            
-            <button id="toggleSignUpBtn" class="btn btn-outline-primary full-width" onclick="toggleAuthMode('signup')">Need an account? Sign Up</button>
-            <button id="toggleLoginBtn" class="btn btn-outline-primary full-width" onclick="toggleAuthMode('login')" style="display: none;">Back to Log In</button>
+        <!-- Right Form Side -->
+        <div class="auth-form-container">
+            <div class="auth-form-box">
+                <h2 id="authTitle">Welcome Back</h2>
+                <p id="authSubtitle">Sign in to access your workspace</p>
+                
+                <!-- Dynamic Form Area -->
+                <div id="authFields">
+                    <!-- Registration Only Fields -->
+                    <div id="signupFields" style="display: none;">
+                        <label class="auth-label">Full Name / Company Name <span style="color:red;">*</span></label>
+                        <input type="text" id="regName" class="auth-input" placeholder="e.g. John Doe / ABC Corp">
+                        
+                        <label class="auth-label">Phone Number <span style="color:red;">*</span></label>
+                        <input type="tel" id="regPhone" class="auth-input" placeholder="e.g. +91 9876543210">
+                        
+                        <label class="auth-label">City / Address <span style="color:red;">*</span></label>
+                        <input type="text" id="regAddress" class="auth-input" placeholder="e.g. Mumbai, Maharashtra">
+                    </div>
 
-            <p style="text-align: center; margin-top: 15px;">
-                <a href="javascript:void(0)" onclick="handlePasswordReset()" style="color: var(--accent-primary); font-size: 12px; text-decoration: none;">Forgot Password?</a>
-            </p>
+                    <label class="auth-label">Email Address <span style="color:red;">*</span></label>
+                    <input type="email" id="emailInput" class="auth-input" placeholder="name@company.com">
+                    
+                    <div id="passwordWrapper">
+                        <label class="auth-label">Password <span style="color:red;">*</span></label>
+                        <input type="password" id="passwordInput" class="auth-input" placeholder="••••••••">
+                    </div>
+                </div>
+                
+                <!-- Dynamic Action Buttons -->
+                <button id="loginBtn" class="btn btn-gradient full-width shadow-hover auth-btn" onclick="handleLogin()">Secure Log In</button>
+                <button id="signupBtn" class="btn btn-gradient full-width shadow-hover auth-btn" onclick="handleSignUp()" style="display: none;">Create Account</button>
+                <button id="resetBtn" class="btn btn-gradient full-width shadow-hover auth-btn" onclick="handlePasswordReset()" style="display: none;">Send Reset Link</button>
+                
+                <!-- Toggle Links -->
+                <div class="auth-links">
+                    <p id="toggleSignUpText">Don't have an account? <a href="javascript:void(0)" onclick="toggleAuthMode('signup')">Sign up here</a></p>
+                    <p id="toggleLoginText" style="display: none;">Already have an account? <a href="javascript:void(0)" onclick="toggleAuthMode('login')">Log in</a></p>
+                    <p id="toggleForgotText"><a href="javascript:void(0)" onclick="toggleAuthMode('reset')" style="color: var(--text-muted);">Forgot your password?</a></p>
+                </div>
 
-            <p id="authMessage" style="color: var(--danger); font-size: 12px; margin-top: 15px; min-height: 18px;"></p>
+                <p id="authMessage" class="auth-msg"></p>
+            </div>
         </div>
     </div>
+    <!-- ========================================== -->
+
     
+    <!-- Payment & Password Update Overlays -->
     <div id="paymentScreen" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 99; position: absolute; width: 100%;">
         <div style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 400px; text-align: center; border: 1px solid var(--border-color);">
             <div style="font-size: 40px; margin-bottom: 15px;">🔒</div>
             <h2 style="margin-top: 0; color: var(--brand-dark);">Payment Pending</h2>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5;">Your account is locked pending payment verification.</p>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5;">Your account has been created successfully, but your access is currently locked pending payment verification.</p>
+            <div style="background: #f8fafc; padding: 15px; border-radius: var(--radius-md); border: 1px dashed #cbd5e1; margin-bottom: 20px;">
+                <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600;">Scan to Pay via UPI:</p>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=clientupi@bank" alt="UPI QR" style="width: 150px; height: 150px; border-radius: 8px;">
+                <p style="margin: 10px 0 0 0; font-size: 11px; color: var(--text-muted);">UPI ID: yourclient@upi</p>
+            </div>
             <button class="btn btn-outline-primary full-width" onclick="checkSession()">I have paid, refresh status</button>
             <button class="btn btn-glass full-width" style="margin-top: 10px; color: var(--text-muted); border-color: var(--border-color);" onclick="supabaseClient.auth.signOut().then(() => location.reload())">Log Out</button>
         </div>
     </div>
+    
+    <div id="updatePasswordScreen" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 101; position: absolute; width: 100%;">
+        <div style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 320px; text-align: center; border: 1px solid var(--border-color);">
+            <div style="font-size: 40px; margin-bottom: 15px;">🔑</div>
+            <h2 style="margin-top: 0; color: var(--brand-dark);">Reset Password</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px;">Please enter your new secure password.</p>
+            <input type="password" id="newPasswordInput" class="auth-input" placeholder="New Password" style="margin-bottom: 15px;">
+            <button class="btn btn-gradient full-width" onclick="saveNewPassword()">Save Password</button>
+            <p id="updateMsg" style="color: var(--danger); font-size: 12px; margin-top: 15px; min-height: 18px;"></p>
+        </div>
+    </div>
 
+    <!-- Cloud Project Browser Modal -->
     <div id="cloudBrowser" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
         <div style="background: white; padding: 30px; border-radius: var(--radius-lg); width: 600px; max-height: 80vh; display: flex; flex-direction: column;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -60,10 +116,12 @@
                 <button class="btn btn-glass" style="color: var(--text-muted); border-color: var(--border-color);" onclick="document.getElementById('cloudBrowser').style.display='none'">Close</button>
             </div>
             <div id="cloudProjectList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
-                </div>
+                <!-- Projects will be loaded here via JS -->
+            </div>
         </div>
     </div>
 
+    <!-- Main Workspace -->
     <div class="no-print app-container">
         <header class="top-bar">
             <div class="brand">
@@ -205,6 +263,7 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
         </main>
     </div>
 
+    <!-- Generated Project Documents -->
     <div id="projectSheet" style="display:none;">
         <div style="text-align: center; color: var(--brand-dark); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;" class="no-print">
             ↓ Generated Project Documents ↓
@@ -228,5 +287,6 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
             <tbody><tr><td><div id="windowList" class="window-list-container" style="display: flex; flex-wrap: wrap; justify-content: center;"></div></td></tr></tbody>
         </table>
     </div>
+
 </body>
 </html>
