@@ -30,8 +30,6 @@ body {
     font-family: 'Poppins', sans-serif;
     background-color: var(--bg-app);
     color: var(--text-main);
-    
-    /* FIX 1: Allow page to scroll down to view generated canvases */
     overflow-x: hidden;
     overflow-y: auto; 
 }
@@ -41,7 +39,6 @@ body {
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-/* FIX 2: Allow the main app area to adjust to screen size rather than lock at exactly 100vh */
 .app-container {
     display: flex;
     flex-direction: column;
@@ -154,11 +151,7 @@ input:focus, select:focus, textarea:focus {
 .hero-input { font-size: 15px; font-weight: 600; padding: 12px 14px; background: #fff; border: 2px solid var(--border-color); }
 .hero-input:focus { border-color: var(--accent-primary); }
 
-.size-input-row { 
-    display: flex; 
-    gap: 8px; 
-    align-items: center; 
-}
+.size-input-row { display: flex; gap: 8px; align-items: center; }
 
 .input-mini-flex {
     flex: 1;
@@ -278,7 +271,9 @@ input:focus, select:focus, textarea:focus {
     margin: 0 auto 20px auto;
     width: fit-content;
 }
-canvas { background: white; max-width: 100%; height: auto; display: block; border: 1px solid #f1f5f9; border-radius: 4px; }
+
+/* FIX: Ensure ONLY the preview canvas in the dashboard has height auto. Generated canvases stay rigid */
+#previewCanvas { background: white; max-width: 100%; height: auto; display: block; border: 1px solid #f1f5f9; border-radius: 4px; }
 
 /* Parts Manager */
 .parts-manager-title { font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 10px; }
@@ -326,10 +321,7 @@ canvas { background: white; max-width: 100%; height: auto; display: block; borde
 
 .hidden { display: none !important; }
 
-/* =========================================
-   FIX 3: Print Preview Layout styling 
-   (Made it look like a desk with papers)
-   ========================================= */
+/* --- Print Preview Layout --- */
 #projectSheet {
     background: #e2e8f0;
     padding: 40px 0;
@@ -350,6 +342,8 @@ canvas { background: white; max-width: 100%; height: auto; display: block; borde
     margin-bottom: 40px;
     border-radius: 4px;
 }
+
+/* FIX: Restored exact box dimensions so the generated canvas fits perfectly */
 .drawing-container { 
     background: #fff; 
     border: 1px solid #000; 
@@ -360,9 +354,11 @@ canvas { background: white; max-width: 100%; height: auto; display: block; borde
     height: 650px; 
     box-sizing: border-box; 
     position: relative;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15); /* Drop shadow for canvases */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+    overflow: hidden;
+    page-break-inside: avoid;
 }
-/* Re-enabled Edit/Copy/Delete Buttons on screen */
+
 .copy-btn { position: absolute; top: 5px; right: 75px; background: #15803d; color: white; font-size: 11px; padding: 3px 8px; border: 1px solid #000; z-index: 5; cursor: pointer; }
 .del-btn-saved { position: absolute; top: 5px; right: 5px; background: #b91c1c; color: white; font-size: 11px; padding: 3px 8px; border: 1px solid #000; z-index: 5; cursor: pointer; }
 .edit-btn-saved { position: absolute; top: 5px; right: 35px; background: #f59e0b; font-size: 11px; padding: 3px 8px; border: 1px solid #000; z-index: 5; cursor: pointer; color: black; }

@@ -336,7 +336,6 @@ function drawIndividual(canvas, d, isP) {
     if(d.notes) { sY += 5; ctx.fillStyle = "#0f172a"; ctx.font="bold 11px Arial"; ctx.fillText("NOTES: ", sX, sY); sY += 15; ctx.font="11px Arial"; wrapText(ctx, d.notes, sX, sY, mW, 15); }
 }
 
-// FIX: Generate and Add to Project now gracefully scrolls the user to the print preview area
 function addOrUpdateWindow() { 
     if(currentBoxes.length===0) return alert("ENTER SIZE"); 
     let d = { 
@@ -349,7 +348,6 @@ function addOrUpdateWindow() {
     renderProject(); 
     clearAll(); 
     
-    // Smooth scroll down to the generated project sheet
     setTimeout(() => {
         document.getElementById("projectSheet").scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
@@ -380,7 +378,6 @@ function renderProject() {
     let hasW = projectWindows.length > 0;
     document.getElementById("welcomePage").style.display = hasW ? "block" : "none"; 
     
-    // FIX: Render Project Sheet properly
     document.getElementById("projectSheet").style.display = hasW ? "block" : "none"; 
     document.getElementById("drawingsTable").style.display = hasW ? "table" : "none";
     
@@ -418,12 +415,4 @@ function copyWindow(i) {
 
 function editWindow(i) { 
     let d = projectWindows[i]; document.getElementById("w").value = d.w; document.getElementById("h").value = d.h; document.getElementById("unit").value = d.unit; document.getElementById("winTag").value = d.tag; document.getElementById("glassSpec").value = d.glass || ""; document.getElementById("colorSpec").value = d.color || ""; document.getElementById("lockSpec").value = d.lock || ""; document.getElementById("lockHSpec").value = d.lockPos || "CENTRE"; assignSpecValues(d); document.getElementById("areaSpec").value = d.area || ""; document.getElementById("rateSpec").value = d.rate || ""; document.getElementById("notes").value = d.notes; currentBoxes = JSON.parse(JSON.stringify(d.boxes)); historyStack = []; document.getElementById("editIndex").value = i; renderPartsUI(); drawPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
-}
-
-function exportProjectFile() { 
-    let pkg = { client: document.getElementById("clientName").value, loc: document.getElementById("siteLoc").value, date: document.getElementById("projDate").value, welcome: document.getElementById("welcomeText").value, disclaimer: document.getElementById("disclaimerText").value, windows: projectWindows }; let dl = document.createElement('a'); dl.setAttribute("href", "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(pkg))); dl.setAttribute("download", (document.getElementById("clientName").value || "PROJECT") + ".pdf"); dl.click(); 
-}
-
-function importProjectFile(event) { 
-    let r = new FileReader(); r.onload = (e) => { let pkg = JSON.parse(e.target.result); document.getElementById("clientName").value = pkg.client || ""; document.getElementById("siteLoc").value = pkg.loc || ""; document.getElementById("projDate").value = pkg.date || ""; document.getElementById("welcomeText").value = pkg.welcome || ""; document.getElementById("disclaimerText").value = pkg.disclaimer || ""; projectWindows = pkg.windows; renderProject(); }; r.readAsText(event.target.files[0]); 
 }
