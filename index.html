@@ -39,6 +39,7 @@
             <p id="authMessage" style="color: var(--danger); font-size: 12px; margin-top: 15px; min-height: 18px;"></p>
         </div>
     </div>
+    
     <div id="paymentScreen"
         style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 99; position: absolute; width: 100%;">
         <div
@@ -63,6 +64,7 @@
                 onclick="supabaseClient.auth.signOut().then(() => location.reload())">Log Out</button>
         </div>
     </div>
+    
     <div id="updatePasswordScreen"
         style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 101; position: absolute; width: 100%;">
         <div
@@ -78,6 +80,7 @@
             <p id="updateMsg" style="color: var(--danger); font-size: 12px; margin-top: 15px; min-height: 18px;"></p>
         </div>
     </div>
+
     <div class="no-print app-container">
 
         <header class="top-bar">
@@ -277,7 +280,10 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
         </main>
     </div>
 
-    <div id="projectSheet">
+    <div id="projectSheet" style="display:none;">
+        <div style="text-align: center; color: var(--brand-dark); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;" class="no-print">
+            ↓ Generated Project Documents ↓
+        </div>
         <div id="welcomePage" class="welcome-box">
             <div class="welcome-logo-wrapper">
                 <img id="welcomeLogo" src="logo.png" alt="Logo" class="header-logo" onerror="this.style.display='none'">
@@ -305,7 +311,7 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
             </div>
         </div>
 
-        <table id="drawingsTable" class="hidden">
+        <table id="drawingsTable" style="display:none; width: 1080px; margin: 0 auto; background: transparent;">
             <thead>
                 <tr>
                     <td>
@@ -319,7 +325,7 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
             <tbody>
                 <tr>
                     <td>
-                        <div id="windowList" class="window-list-container"></div>
+                        <div id="windowList" class="window-list-container" style="display: flex; flex-wrap: wrap; justify-content: center;"></div>
                     </td>
                 </tr>
             </tbody>
