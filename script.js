@@ -11,16 +11,18 @@ document.addEventListener("DOMContentLoaded", () => {
     checkSession();
 });
 
-// FIX: Dedicated UI toggle for Login, SignUp, and Reset Password
 function toggleAuthMode(mode) {
     const msg = document.getElementById('authMessage');
-    msg.innerText = ""; // Clear old errors
+    msg.innerText = ""; 
     
+    const emailInput = document.getElementById('emailInput');
+
     if (mode === 'signup') {
         document.getElementById('authTitle').innerText = 'Create Account';
-        document.getElementById('authSubtitle').innerText = 'Enter your details to register';
+        document.getElementById('authSubtitle').innerHTML = 'Enter your details to register';
         document.getElementById('signupFields').style.display = 'block';
         document.getElementById('passwordWrapper').style.display = 'block';
+        emailInput.style.display = 'block';
         
         document.getElementById('loginBtn').style.display = 'none';
         document.getElementById('resetBtn').style.display = 'none';
@@ -29,25 +31,31 @@ function toggleAuthMode(mode) {
         document.getElementById('toggleSignUpText').style.display = 'none';
         document.getElementById('toggleForgotText').style.display = 'none';
         document.getElementById('toggleLoginText').style.display = 'block';
-    } else if (mode === 'reset') {
+    } 
+    else if (mode === 'reset') {
+        // FIX: Display "Contact Admin" message instead of email form
         document.getElementById('authTitle').innerText = 'Reset Password';
-        document.getElementById('authSubtitle').innerText = 'Enter your email to receive a reset link';
+        document.getElementById('authSubtitle').innerHTML = 'Email services are disabled for this workspace.<br><br><span style="color: var(--brand-dark); font-weight: 600;">Please contact your System Administrator to obtain a new temporary password.</span>';
+        
         document.getElementById('signupFields').style.display = 'none';
-        document.getElementById('passwordWrapper').style.display = 'none'; // Hide password!
+        document.getElementById('passwordWrapper').style.display = 'none';
+        emailInput.style.display = 'none'; // Hide the email box
         
         document.getElementById('loginBtn').style.display = 'none';
         document.getElementById('signupBtn').style.display = 'none';
-        document.getElementById('resetBtn').style.display = 'block';
+        document.getElementById('resetBtn').style.display = 'none'; // Hide the submit button
         
         document.getElementById('toggleForgotText').style.display = 'none';
         document.getElementById('toggleSignUpText').style.display = 'none';
         document.getElementById('toggleLoginText').style.display = 'block';
-    } else {
+    } 
+    else {
         // Default Login Mode
         document.getElementById('authTitle').innerText = 'Welcome Back';
-        document.getElementById('authSubtitle').innerText = 'Sign in to access your workspace';
+        document.getElementById('authSubtitle').innerHTML = 'Sign in to access your workspace';
         document.getElementById('signupFields').style.display = 'none';
         document.getElementById('passwordWrapper').style.display = 'block';
+        emailInput.style.display = 'block';
         
         document.getElementById('resetBtn').style.display = 'none';
         document.getElementById('signupBtn').style.display = 'none';
@@ -93,7 +101,7 @@ async function handleSignUp() {
     const address = document.getElementById('regAddress').value;
     const msg = document.getElementById('authMessage');
     
-    // FIX: Strict Validation for required fields
+    // Strict Validation for required fields
     if(!email || !password || !name || !phone || !address) {
         msg.style.color = "var(--danger)"; 
         msg.innerText = "Please fill in all fields to create your account.";
@@ -110,7 +118,7 @@ async function handleSignUp() {
         msg.innerText = error.message; 
     } else { 
         if(data.user) {
-            // Give trigger a moment to create row, then update with required client info
+            // Give the trigger a moment to create the profile row, then update it with client info
             setTimeout(async () => {
                 await supabaseClient.from('profiles').update({
                     full_name: name,
@@ -141,29 +149,9 @@ async function handleLogout() {
     window.location.reload(); 
 }
 
-// FIX: Improved Forgot Password UX
+// Deprecated since emails are off, but kept for future reference
 async function handlePasswordReset() {
-    const email = document.getElementById('emailInput').value;
-    const msg = document.getElementById('authMessage');
-    
-    if (!email) { 
-        msg.style.color = "var(--danger)"; 
-        msg.innerText = "Please enter your email address above to reset your password."; 
-        return; 
-    }
-    
-    msg.style.color = "var(--text-muted)";
-    msg.innerText = "Sending reset link...";
-    
-    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/index.html', });
-    
-    if (error) { 
-        msg.style.color = "var(--danger)"; 
-        msg.innerText = error.message; 
-    } else { 
-        msg.style.color = "var(--accent-primary)"; 
-        msg.innerText = "Success! Check your email for the secure reset link."; 
-    }
+    alert("Email services are disabled. Please contact the administrator.");
 }
 
 async function saveNewPassword() {
@@ -376,7 +364,6 @@ function drawIndividual(canvas, d, isP) {
     if(!d.tag) { ctx.fillStyle = "#ef4444"; ctx.fillText("PENDING", sX + idLW, sY); } else { ctx.fillStyle = "#4f46e5"; ctx.fillText(d.tag.toUpperCase(), sX + idLW, sY); }
     sY += 24; ctx.fillStyle = "#0f172a"; ctx.font="bold 11px Arial"; ctx.fillText("ENGINEERING SPECIFICATIONS:", sX, sY); sY += 16;
     
-    // FIX: Automatic Total Rate Calculation
     let calcTotal = "";
     if (d.area && d.rate && !isNaN(d.area) && !isNaN(d.rate)) {
         calcTotal = "₹ " + (parseFloat(d.area) * parseFloat(d.rate)).toFixed(2);
