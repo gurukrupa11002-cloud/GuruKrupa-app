@@ -320,36 +320,12 @@ function wrapSpecLine(ctx, label, value, x, y, maxWidth, lineHeight) {
 }
 
 function drawPreview() { 
-    // Get values as numbers (defaults to 0 if empty)
-    let area = parseFloat(document.getElementById("areaSpec").value) || 0;
-    let rate = parseFloat(document.getElementById("rateSpec").value) || 0;
-    let total = area * rate;
-
-    let d = { 
-        w: parseFloat(document.getElementById("w").value) || 0, 
-        h: parseFloat(document.getElementById("h").value) || 0, 
-        unit: document.getElementById("unit").value, 
-        tag: document.getElementById("winTag").value, 
-        glass: document.getElementById("glassSpec").value, 
-        color: document.getElementById("colorSpec").value, 
-        lock: document.getElementById("lockSpec").value, 
-        lockPos: document.getElementById("lockHSpec").value, 
-        series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), 
-        area: area,
-        rate: rate,
-        totalPrice: total, // Passing the calculation
-        mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), 
-        notes: document.getElementById("notes").value, 
-        boxes: currentBoxes 
-    }; 
+    let d = { w: parseFloat(document.getElementById("w").value)||0, h: parseFloat(document.getElementById("h").value)||0, unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: currentBoxes }; 
     drawIndividual(document.getElementById("previewCanvas"), d, true); 
 }
 
 function drawIndividual(canvas, d, isP) {
-    var ctx = canvas.getContext("2d"); 
-    ctx.fillStyle = "white"; 
-    ctx.fillRect(0,0, canvas.width, canvas.height); 
-
+    var ctx = canvas.getContext("2d"); ctx.fillStyle = "white"; ctx.fillRect(0,0, canvas.width, canvas.height); 
     if(d.w <= 0 || d.h <= 0 || d.boxes.length === 0) return;
     
     let wB = toBase(d.w, d.unit); let hB = toBase(d.h, d.unit); var scale = Math.min((canvas.width-80)/(wB*304.8), (canvas.height/2-80)/(hB*304.8)); var x = 40, y = 80; 
@@ -369,34 +345,17 @@ function drawIndividual(canvas, d, isP) {
         if (b.type === 'door') { ctx.setLineDash([5, 5]); ctx.beginPath(); if(b.doorType === 'double') { let gap = 10; let pW = (bw - gap) / 2; ctx.moveTo(bx, by); ctx.lineTo(bx+pW, by+bh/2); ctx.lineTo(bx, by+bh); ctx.moveTo(bx+bw, by); ctx.lineTo(bx+bw-pW, by+bh/2); ctx.lineTo(bx+bw, by+bh); } else if(b.doorType === '1L') { ctx.moveTo(bx, by); ctx.lineTo(bx+bw, by+bh/2); ctx.lineTo(bx, by+bh); } else if(b.doorType === '1R') { ctx.moveTo(bx+bw, by); ctx.lineTo(bx, by+bh/2); ctx.lineTo(bx+bw, by+bh); } else if(b.doorType === 'tophung') { ctx.moveTo(bx, by); ctx.lineTo(bx+bw/2, by+bh); ctx.lineTo(bx+bw, by); } ctx.stroke(); ctx.setLineDash([]); } else if (b.type === 'fan') { let r = Math.min(bw, bh)*0.3; ctx.beginPath(); ctx.arc(bx+bw/2, by+bh/2, r, 0, 2*Math.PI); ctx.stroke(); ctx.moveTo(bx+bw/2-r*0.7, by+bh/2-r*0.7); ctx.lineTo(bx+bw/2+r*0.7, by+bh/2+r*0.7); ctx.moveTo(bx+bw/2+r*0.7, by+bh/2-r*0.7); ctx.lineTo(bx+bw/2-r*0.7, by+bh/2+r*0.7); ctx.stroke(); }
     });
     
-   ctx.textAlign="left"; 
-    ctx.font="bold 12px Arial"; 
-    let sX = 15; 
-    let sY = y + hB*304.8*scale + 40; 
-    let mW = canvas.width - 30; 
-    ctx.fillStyle = "#0f172a"; 
-    ctx.fillText("ASSET ID: ", sX, sY); 
+    ctx.textAlign="left"; ctx.font="bold 12px Arial"; let sX = 15; let sY = y + hB*304.8*scale + 40; let mW = canvas.width - 30; ctx.fillStyle = "#0f172a"; ctx.fillText("ASSET ID: ", sX, sY); let idLW = ctx.measureText("ASSET ID: ").width; 
+    if(!d.tag) { ctx.fillStyle = "#ef4444"; ctx.fillText("PENDING", sX + idLW, sY); } else { ctx.fillStyle = "#4f46e5"; ctx.fillText(d.tag.toUpperCase(), sX + idLW, sY); }
+    sY += 24; ctx.fillStyle = "#0f172a"; ctx.font="bold 11px Arial"; ctx.fillText("ENGINEERING SPECIFICATIONS:", sX, sY); sY += 16;
     
-    let idLW = ctx.measureText("ASSET ID: ").width; 
-    if(!d.tag) { ctx.fillStyle = "#ef4444"; ctx.fillText("PENDING", sX + idLW, sY); } 
-    else { ctx.fillStyle = "#4f46e5"; ctx.fillText(d.tag.toUpperCase(), sX + idLW, sY); }
-
-    sY += 24; 
-    ctx.fillStyle = "#0f172a"; 
-    ctx.font="bold 11px Arial"; 
-    ctx.fillText("ENGINEERING SPECIFICATIONS:", sX, sY); 
-    sY += 16; 
-
-    // Added TOTAL PRICE here
     let sps = [
         {l:"SERIES SYSTEM: ", v:d.series}, {l:"GLASS: ", v:d.glass}, 
         {l:"COLOR: ", v:d.color}, {l:"LOCK TYPE: ", v:d.lock}, 
         {l:"LOCK POSITION: ", v:d.lockPos}, {l:"MESH OPTION: ", v:d.mesh}, 
-        {l:"AREA (SQ.FT): ", v:d.area}, {l:"RATE / SQ.FT: ", v:d.rate},
-        {l:"TOTAL PRICE: ", v: d.totalPrice ? "₹" + d.totalPrice.toLocaleString() : "0"}
+        {l:"AREA (SQ.FT): ", v:d.area}, {l:"RATE / SQ.FT: ", v:d.rate}
     ];
     sps.forEach(s => { sY = wrapSpecLine(ctx, s.l, s.v, sX, sY, mW, 15); });
-
     if(d.notes) { sY += 5; ctx.fillStyle = "#0f172a"; ctx.font="bold 11px Arial"; ctx.fillText("NOTES: ", sX, sY); sY += 15; ctx.font="11px Arial"; wrapText(ctx, d.notes, sX, sY, mW, 15); }
 }
 
