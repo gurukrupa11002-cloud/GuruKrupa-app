@@ -320,7 +320,28 @@ function wrapSpecLine(ctx, label, value, x, y, maxWidth, lineHeight) {
 }
 
 function drawPreview() { 
-    let d = { w: parseFloat(document.getElementById("w").value)||0, h: parseFloat(document.getElementById("h").value)||0, unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: currentBoxes }; 
+    // 1. Get the area and rate values
+    let area = parseFloat(document.getElementById("areaSpec").value) || 0;
+    let rate = parseFloat(document.getElementById("rateSpec").value) || 0;
+    let total = area * rate; // Calculate total
+
+    let d = { 
+        w: parseFloat(document.getElementById("w").value)||0, 
+        h: parseFloat(document.getElementById("h").value)||0, 
+        unit: document.getElementById("unit").value, 
+        tag: document.getElementById("winTag").value, 
+        glass: document.getElementById("glassSpec").value, 
+        color: document.getElementById("colorSpec").value, 
+        lock: document.getElementById("lockSpec").value, 
+        lockPos: document.getElementById("lockHSpec").value, 
+        series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), 
+        area: area, // Use the variable
+        rate: rate, // Use the variable
+        totalPrice: total, // Pass the total here
+        mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), 
+        notes: document.getElementById("notes").value, 
+        boxes: currentBoxes 
+    }; 
     drawIndividual(document.getElementById("previewCanvas"), d, true); 
 }
 
@@ -353,7 +374,8 @@ function drawIndividual(canvas, d, isP) {
         {l:"SERIES SYSTEM: ", v:d.series}, {l:"GLASS: ", v:d.glass}, 
         {l:"COLOR: ", v:d.color}, {l:"LOCK TYPE: ", v:d.lock}, 
         {l:"LOCK POSITION: ", v:d.lockPos}, {l:"MESH OPTION: ", v:d.mesh}, 
-        {l:"AREA (SQ.FT): ", v:d.area}, {l:"RATE / SQ.FT: ", v:d.rate}
+        {l:"AREA (SQ.FT): ", v:d.area}, {l:"RATE / SQ.FT: ", v:d.rate},
+        {l:"TOTAL PRICE: ", v: d.totalPrice ? "₹" + d.totalPrice.toLocaleString() : "0"} // Added this line
     ];
     sps.forEach(s => { sY = wrapSpecLine(ctx, s.l, s.v, sX, sY, mW, 15); });
     if(d.notes) { sY += 5; ctx.fillStyle = "#0f172a"; ctx.font="bold 11px Arial"; ctx.fillText("NOTES: ", sX, sY); sY += 15; ctx.font="11px Arial"; wrapText(ctx, d.notes, sX, sY, mW, 15); }
