@@ -17,12 +17,28 @@
     <div id="authScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 100; position: absolute; width: 100%;">
         <div style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 320px; text-align: center; border: 1px solid var(--border-color);">
             <div class="brand-icon" style="font-size: 32px; margin-bottom: 10px; display: inline-block;">📐</div>
-            <h2 style="margin-top: 0; color: var(--brand-dark);">SMG Studio</h2>
-            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Sign in to access your workspace</p>
+            <h2 id="authTitle" style="margin-top: 0; color: var(--brand-dark);">Welcome Back</h2>
+            <p id="authSubtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Sign in to access your workspace</p>
+            
+            <div id="signupFields" style="display: none;">
+                <input type="text" id="regName" placeholder="Full Name / Company" style="margin-bottom: 12px;">
+                <input type="text" id="regPhone" placeholder="Phone Number" style="margin-bottom: 12px;">
+                <input type="text" id="regAddress" placeholder="City / Address" style="margin-bottom: 12px;">
+            </div>
+
             <input type="email" id="emailInput" placeholder="Email Address" style="margin-bottom: 12px;">
             <input type="password" id="passwordInput" placeholder="Password" style="margin-bottom: 20px;">
-            <button class="btn btn-gradient full-width shadow-hover" onclick="handleLogin()" style="margin-bottom: 10px;">Log In</button>
-            <button class="btn btn-outline-primary full-width" onclick="handleSignUp()">Create Account</button>
+            
+            <button id="loginBtn" class="btn btn-gradient full-width shadow-hover" onclick="handleLogin()" style="margin-bottom: 10px;">Log In</button>
+            <button id="signupBtn" class="btn btn-gradient full-width shadow-hover" onclick="handleSignUp()" style="margin-bottom: 10px; display: none;">Create Account</button>
+            
+            <button id="toggleSignUpBtn" class="btn btn-outline-primary full-width" onclick="toggleAuthMode('signup')">Need an account? Sign Up</button>
+            <button id="toggleLoginBtn" class="btn btn-outline-primary full-width" onclick="toggleAuthMode('login')" style="display: none;">Back to Log In</button>
+
+            <p style="text-align: center; margin-top: 15px;">
+                <a href="javascript:void(0)" onclick="handlePasswordReset()" style="color: var(--accent-primary); font-size: 12px; text-decoration: none;">Forgot Password?</a>
+            </p>
+
             <p id="authMessage" style="color: var(--danger); font-size: 12px; margin-top: 15px; min-height: 18px;"></p>
         </div>
     </div>
@@ -60,7 +76,6 @@
             <div class="global-actions">
                 <button class="btn btn-glass" onclick="saveProjectToCloud()">☁️ Save to Cloud</button>
                 <button class="btn btn-glass" onclick="openCloudBrowser()">☁️ Load from Cloud</button>
-                
                 <button class="btn btn-danger" onclick="createNewProject()">Reset Form</button>
                 <button class="btn btn-gradient print-btn" onclick="window.print()">🖨️ Export PDF</button>
                 <button class="btn btn-glass" style="border-color: rgba(239, 68, 68, 0.5); color: #fca5a5;" onclick="handleLogout()">🚪 Log Out</button>
@@ -213,6 +228,5 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
             <tbody><tr><td><div id="windowList" class="window-list-container" style="display: flex; flex-wrap: wrap; justify-content: center;"></div></td></tr></tbody>
         </table>
     </div>
-
 </body>
 </html>

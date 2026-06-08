@@ -3,13 +3,33 @@ const supabaseUrl = 'https://kqgtomdvgpiuvfuoiyjw.supabase.co';
 const supabaseKey = 'sb_publishable_nQuk3NkG2oB2zESabijRMA_fGoOxgNT'; 
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-let currentCloudProjectId = null; // Tracks if we are editing an existing cloud project
+let currentCloudProjectId = null; 
 
 // --- Authentication Logic ---
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelector('.app-container').style.display = 'none';
     checkSession();
 });
+
+function toggleAuthMode(mode) {
+    if (mode === 'signup') {
+        document.getElementById('authTitle').innerText = 'Create Account';
+        document.getElementById('authSubtitle').innerText = 'Enter your details to register';
+        document.getElementById('signupFields').style.display = 'block';
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('signupBtn').style.display = 'block';
+        document.getElementById('toggleSignUpBtn').style.display = 'none';
+        document.getElementById('toggleLoginBtn').style.display = 'block';
+    } else {
+        document.getElementById('authTitle').innerText = 'Welcome Back';
+        document.getElementById('authSubtitle').innerText = 'Sign in to access your workspace';
+        document.getElementById('signupFields').style.display = 'none';
+        document.getElementById('loginBtn').style.display = 'block';
+        document.getElementById('signupBtn').style.display = 'none';
+        document.getElementById('toggleSignUpBtn').style.display = 'block';
+        document.getElementById('toggleLoginBtn').style.display = 'none';
+    }
+}
 
 async function checkSession() {
     const { data: { session }, error } = await supabaseClient.auth.getSession();
@@ -26,8 +46,6 @@ async function checkSession() {
         if (profile && profile.payment_status === 'cleared') {
             document.getElementById('paymentScreen').style.display = 'none';
             document.querySelector('.app-container').style.display = 'flex';
-            // Auto-load last work from cloud removed to prevent overwriting active memory. 
-            // Users will actively click "Load from Cloud" instead.
         } else {
             document.querySelector('.app-container').style.display = 'none';
             document.getElementById('paymentScreen').style.display = 'flex';
@@ -42,12 +60,34 @@ async function checkSession() {
 async function handleSignUp() {
     const email = document.getElementById('emailInput').value;
     const password = document.getElementById('passwordInput').value;
+    const name = document.getElementById('regName').value;
+    const phone = document.getElementById('regPhone').value;
+    const address = document.getElementById('regAddress').value;
     const msg = document.getElementById('authMessage');
-    msg.style.color = "var(--text-muted)"; msg.innerText = "Creating account...";
     
-    const { error } = await supabaseClient.auth.signUp({ email, password });
-    if (error) { msg.style.color = "var(--danger)"; msg.innerText = error.message; } 
-    else { msg.style.color = "var(--accent-primary)"; msg.innerText = "Account created! You can now log in."; }
+    msg.style.color = "var(--text-muted)"; 
+    msg.innerText = "Creating account...";
+    
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    
+    if (error) { 
+        msg.style.color = "var(--danger)"; 
+        msg.innerText = error.message; 
+    } else { 
+        if(data.user) {
+            // Give the trigger a moment to create the profile row, then update it with client info
+            setTimeout(async () => {
+                await supabaseClient.from('profiles').update({
+                    full_name: name,
+                    phone: phone,
+                    address: address
+                }).eq('id', data.user.id);
+            }, 1500);
+        }
+        msg.style.color = "var(--accent-primary)"; 
+        msg.innerText = "Account created! You can now log in."; 
+        toggleAuthMode('login'); 
+    }
 }
 
 async function handleLogin() {
@@ -66,10 +106,7 @@ async function handleLogout() {
     window.location.reload(); 
 }
 
-// ============================================
-// --- CLOUD SYNCHRONIZATION LOGIC (NEW) ---
-// ============================================
-
+// --- CLOUD SYNCHRONIZATION LOGIC ---
 async function saveProjectToCloud() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return alert("You must be logged in to save.");
@@ -84,10 +121,9 @@ async function saveProjectToCloud() {
         project_date: document.getElementById("projDate").value,
         welcome_text: document.getElementById("welcomeText").value,
         disclaimer_text: document.getElementById("disclaimerText").value,
-        windows_data: projectWindows // The massive JSON array of all drawings
+        windows_data: projectWindows 
     };
 
-    // Change button text to show loading
     const btn = document.querySelector('.global-actions button:first-child');
     const originalText = btn.innerText;
     btn.innerText = "☁️ Saving...";
@@ -95,11 +131,9 @@ async function saveProjectToCloud() {
     let errorObj = null;
 
     if (currentCloudProjectId) {
-        // Update existing project
         const { error } = await supabaseClient.from('quotations').update(payload).eq('id', currentCloudProjectId);
         errorObj = error;
     } else {
-        // Insert new project
         const { data, error } = await supabaseClient.from('quotations').insert([payload]).select();
         errorObj = error;
         if (data && data.length > 0) currentCloudProjectId = data[0].id;
@@ -127,15 +161,8 @@ async function openCloudBrowser() {
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
 
-    if (error) {
-        list.innerHTML = `<p style='color:red;'>Error loading projects: ${error.message}</p>`;
-        return;
-    }
-
-    if (projects.length === 0) {
-        list.innerHTML = "<p style='text-align:center;'>No projects found in the cloud.</p>";
-        return;
-    }
+    if (error) { list.innerHTML = `<p style='color:red;'>Error loading projects: ${error.message}</p>`; return; }
+    if (projects.length === 0) { list.innerHTML = "<p style='text-align:center;'>No projects found in the cloud.</p>"; return; }
 
     list.innerHTML = "";
     projects.forEach(p => {
@@ -156,18 +183,9 @@ async function openCloudBrowser() {
 async function loadSpecificProject(projectId) {
     document.getElementById('cloudProjectList').innerHTML = "<p style='text-align:center;'>Downloading project data...</p>";
     
-    const { data, error } = await supabaseClient
-        .from('quotations')
-        .select('*')
-        .eq('id', projectId)
-        .single();
+    const { data, error } = await supabaseClient.from('quotations').select('*').eq('id', projectId).single();
+    if (error) { alert("Error loading project: " + error.message); return; }
 
-    if (error) {
-        alert("Error loading project: " + error.message);
-        return;
-    }
-
-    // Populate UI with fetched data
     currentCloudProjectId = data.id;
     document.getElementById("clientName").value = data.client_name || "";
     document.getElementById("siteLoc").value = data.site_location || "";
@@ -176,7 +194,6 @@ async function loadSpecificProject(projectId) {
     document.getElementById("disclaimerText").value = data.disclaimer_text || "";
     
     projectWindows = data.windows_data || [];
-    
     renderProject();
     document.getElementById('cloudBrowser').style.display = 'none';
 }
@@ -192,26 +209,10 @@ function createNewProject() {
     } 
 }
 
-// ============================================
 // --- Quotation Maker Core Logic ---
-// ============================================
-let projectWindows = []; 
-let currentBoxes = []; 
-let historyStack = [];
-let currentLogoData = "logo.png";
-
-function saveHistory() { 
-    historyStack.push(JSON.stringify(currentBoxes)); 
-    if (historyStack.length > 50) historyStack.shift(); 
-}
-
-function undoAction() { 
-    if (historyStack.length > 0) { 
-        currentBoxes = JSON.parse(historyStack.pop()); 
-        renderPartsUI(); drawPreview(); 
-    } 
-}
-
+let projectWindows = []; let currentBoxes = []; let historyStack = []; let currentLogoData = "logo.png";
+function saveHistory() { historyStack.push(JSON.stringify(currentBoxes)); if (historyStack.length > 50) historyStack.shift(); }
+function undoAction() { if (historyStack.length > 0) { currentBoxes = JSON.parse(historyStack.pop()); renderPartsUI(); drawPreview(); } }
 function handleManualSeries(v) { document.getElementById('seriesManual').classList.toggle('hidden', v !== "MANUAL"); drawPreview(); }
 function handleManualMesh(v) { document.getElementById('meshManual').classList.toggle('hidden', v !== "MANUAL"); drawPreview(); }
 
@@ -232,20 +233,11 @@ function toBase(v, uO) { let u = uO || document.getElementById('unit').value; re
 function fromBase(v, uO) { let u = uO || document.getElementById('unit').value; return u === "inch" ? v * 12 : (u === "mm" ? v * 304.8 : v); }
 
 function initBase() {
-    let wR = parseFloat(document.getElementById('w').value) || 0; 
-    let hR = parseFloat(document.getElementById('h').value) || 0;
-    let w = toBase(wR); 
-    let h = toBase(hR);
-    
+    let wR = parseFloat(document.getElementById('w').value) || 0; let hR = parseFloat(document.getElementById('h').value) || 0;
+    let w = toBase(wR); let h = toBase(hR);
     if (w > 0 && h > 0) {
-        if (currentBoxes.length === 0) { 
-            currentBoxes = [{ id: Date.now(), x: 0, y: 0, w: w, h: h, type: 'sliding', p: 1, gBars: [{h:0, v:0}], doorType: '1L' }]; 
-        } else { 
-            let oW = currentBoxes.reduce((m, b) => Math.max(m, b.x + b.w), 0); 
-            let oH = currentBoxes.reduce((m, b) => Math.max(m, b.y + b.h), 0); 
-            let sW = w / oW, sH = h / oH; 
-            currentBoxes.forEach(b => { b.x *= sW; b.y *= sH; b.w *= sW; b.h *= sH; }); 
-        } 
+        if (currentBoxes.length === 0) { currentBoxes = [{ id: Date.now(), x: 0, y: 0, w: w, h: h, type: 'sliding', p: 1, gBars: [{h:0, v:0}], doorType: '1L' }]; } 
+        else { let oW = currentBoxes.reduce((m, b) => Math.max(m, b.x + b.w), 0); let oH = currentBoxes.reduce((m, b) => Math.max(m, b.y + b.h), 0); let sW = w / oW, sH = h / oH; currentBoxes.forEach(b => { b.x *= sW; b.y *= sH; b.w *= sW; b.h *= sH; }); } 
         renderPartsUI(); drawPreview();
     }
 }
@@ -254,53 +246,18 @@ function renderPartsUI() {
     let html = "";
     currentBoxes.forEach((b, i) => {
         let gBarsHtml = ""; 
-        for(let j=0; j<b.p; j++) { 
-            let gb = b.gBars[j] || {h:0, v:0}; 
-            gBarsHtml += `<div class="gbar-item"><span><b>P${j+1}</b></span> <div style="display:flex; gap:10px; align-items:center;"> H <input type="number" value="${gb.h}" onchange="updateGBar(${i},${j},'h',this.value)"> V <input type="number" value="${gb.v}" onchange="updateGBar(${i},${j},'v',this.value)"></div></div>`; 
-        }
-
-        let typeSelect = `<select onchange="updatePart(${i}, 'type', this.value)">
-            <option value="sliding" ${b.type==='sliding'?'selected':''}>Sliding System</option>
-            <option value="fixed" ${b.type==='fixed'?'selected':''}>Fixed Panel</option>
-            <option value="door" ${b.type==='door'?'selected':''}>Door Entry</option>
-            <option value="fan" ${b.type==='fan'?'selected':''}>Exhaust Cutout</option>
-        </select>`;
-
+        for(let j=0; j<b.p; j++) { let gb = b.gBars[j] || {h:0, v:0}; gBarsHtml += `<div class="gbar-item"><span><b>P${j+1}</b></span> <div style="display:flex; gap:10px; align-items:center;"> H <input type="number" value="${gb.h}" onchange="updateGBar(${i},${j},'h',this.value)"> V <input type="number" value="${gb.v}" onchange="updateGBar(${i},${j},'v',this.value)"></div></div>`; }
+        let typeSelect = `<select onchange="updatePart(${i}, 'type', this.value)"><option value="sliding" ${b.type==='sliding'?'selected':''}>Sliding System</option><option value="fixed" ${b.type==='fixed'?'selected':''}>Fixed Panel</option><option value="door" ${b.type==='door'?'selected':''}>Door Entry</option><option value="fan" ${b.type==='fan'?'selected':''}>Exhaust Cutout</option></select>`;
         let extraSettings = "";
-        if (b.type === 'door') {
-            extraSettings = `<label style="margin:0;">Open:</label> <select onchange="updatePart(${i}, 'doorType', this.value)">
-                <option value="1L" ${b.doorType==='1L'?'selected':''}>1 Left</option>
-                <option value="1R" ${b.doorType==='1R'?'selected':''}>1 Right</option>
-                <option value="double" ${b.doorType==='double'?'selected':''}>Double Door</option>
-                <option value="tophung" ${b.doorType==='tophung'?'selected':''}>Top Hung</option>
-            </select>`;
-        } else if (b.type !== 'fan') {
-            extraSettings = `<label style="margin:0;">Panels:</label> <input type="number" value="${b.p}" onchange="updatePart(${i}, 'p', this.value)">
-                <button class="btn btn-micro" onclick="toggleGBar(${i})">Design Grid ⚙️</button>`;
-        }
-
-        html += `<div class="part-card">
-            <div class="part-header"><span>Part ${i+1}</span><span style="color:var(--text-muted); font-weight:500;">${fromBase(b.w).toFixed(2)} x ${fromBase(b.h).toFixed(2)}</span></div>
-            <div class="part-controls">
-                <div class="part-actions">
-                    <button class="btn btn-micro" onclick="splitH(${i})">✂️ Split Horiz</button>
-                    <button class="btn btn-micro" onclick="splitV(${i})">✂️ Split Vert</button>
-                    <button class="btn btn-micro" onclick="editPart(${i})">📐 Edit Dims</button>
-                    <button class="btn btn-micro btn-micro-danger" onclick="deletePart(${i})">🗑️ Delete</button>
-                </div>
-                <div class="part-settings"><label style="margin:0;">Type:</label> ${typeSelect} ${extraSettings}</div>
-                <div id="gbar_${i}" class="gbar-container"><div style="font-weight:600; margin-bottom:10px; display:flex; justify-content:space-between; font-size:12px;">Internal Grid Design<button class="btn btn-micro" onclick="applyGToAll(${i})">Sync All Panels</button></div>${gBarsHtml}</div>
-            </div>
-        </div>`;
+        if (b.type === 'door') { extraSettings = `<label style="margin:0;">Open:</label> <select onchange="updatePart(${i}, 'doorType', this.value)"><option value="1L" ${b.doorType==='1L'?'selected':''}>1 Left</option><option value="1R" ${b.doorType==='1R'?'selected':''}>1 Right</option><option value="double" ${b.doorType==='double'?'selected':''}>Double Door</option><option value="tophung" ${b.doorType==='tophung'?'selected':''}>Top Hung</option></select>`; } else if (b.type !== 'fan') { extraSettings = `<label style="margin:0;">Panels:</label> <input type="number" value="${b.p}" onchange="updatePart(${i}, 'p', this.value)"><button class="btn btn-micro" onclick="toggleGBar(${i})">Design Grid ⚙️</button>`; }
+        html += `<div class="part-card"><div class="part-header"><span>Part ${i+1}</span><span style="color:var(--text-muted); font-weight:500;">${fromBase(b.w).toFixed(2)} x ${fromBase(b.h).toFixed(2)}</span></div><div class="part-controls"><div class="part-actions"><button class="btn btn-micro" onclick="splitH(${i})">✂️ Split Horiz</button><button class="btn btn-micro" onclick="splitV(${i})">✂️ Split Vert</button><button class="btn btn-micro" onclick="editPart(${i})">📐 Edit Dims</button><button class="btn btn-micro btn-micro-danger" onclick="deletePart(${i})">🗑️ Delete</button></div><div class="part-settings"><label style="margin:0;">Type:</label> ${typeSelect} ${extraSettings}</div><div id="gbar_${i}" class="gbar-container"><div style="font-weight:600; margin-bottom:10px; display:flex; justify-content:space-between; font-size:12px;">Internal Grid Design<button class="btn btn-micro" onclick="applyGToAll(${i})">Sync All Panels</button></div>${gBarsHtml}</div></div></div>`;
     });
-    
     document.getElementById('partsManager').innerHTML = html || `<div class="empty-state"><div class="empty-icon">📏</div>Input dimensions to initialize structural grid</div>`;
 }
 
 function toggleGBar(idx) { let el = document.getElementById('gbar_'+idx); el.style.display = (el.style.display === 'block') ? 'none' : 'block'; }
 function updateGBar(pIdx, gIdx, field, val) { saveHistory(); if(!currentBoxes[pIdx].gBars[gIdx]) currentBoxes[pIdx].gBars[gIdx] = {h:0, v:0}; currentBoxes[pIdx].gBars[gIdx][field] = parseInt(val) || 0; drawPreview(); }
 function applyGToAll(idx) { saveHistory(); let b = currentBoxes[idx]; let first = b.gBars[0] || {h:0, v:0}; for(let j=0; j<b.p; j++) b.gBars[j] = { ...first }; renderPartsUI(); drawPreview(); }
-
 function splitH(idx) { saveHistory(); let b = currentBoxes[idx]; let vR = parseFloat(prompt(`ENTER TOP HEIGHT:`)); if (vR > 0 && toBase(vR) < b.h) { let val = toBase(vR); let pid = Date.now(); currentBoxes.splice(idx, 1, { ...b, id: pid, h: val, type: 'fixed', p: 1, gBars:[{h:0, v:0}], doorType:'1L' }, { ...b, id: pid+1, y: b.y + val, h: b.h - val, p: 1, gBars:[{h:0, v:0}], doorType:'1L' }); renderPartsUI(); drawPreview(); } }
 function splitV(idx) { saveHistory(); let b = currentBoxes[idx]; let vR = parseFloat(prompt(`ENTER LEFT WIDTH:`)); if (vR > 0 && toBase(vR) < b.w) { let val = toBase(vR); let pid = Date.now(); currentBoxes.splice(idx, 1, { ...b, id: pid, w: val, type: 'fixed', p: 1, gBars:[{h:0, v:0}], doorType:'1L' }, { ...b, id: pid+1, x: b.x + val, w: b.w - val, p: 1, gBars:[{h:0, v:0}], doorType:'1L' }); renderPartsUI(); drawPreview(); } }
 function editPart(idx) { saveHistory(); let b = currentBoxes[idx]; let n = currentBoxes[idx + 1] || currentBoxes[idx - 1]; if (!n) return alert("NO NEIGHBOR!"); let iN = (currentBoxes[idx + 1] === n); let axis = (b.y === n.y) ? 'V' : (b.x === n.x ? 'H' : null); if (axis === 'V') { let tW = fromBase(b.w + n.w); let nR = parseFloat(prompt(`NEW WIDTH:`)); if (nR > 0 && nR < tW) { let nV = toBase(nR); b.w = nV; n.w = toBase(tW) - nV; if (iN) n.x = b.x + b.w; else b.x = n.x + n.w; } } else if (axis === 'H') { let tH = fromBase(b.h + n.h); let nR = parseFloat(prompt(`NEW HEIGHT:`)); if (nR > 0 && nR < tH) { let nV = toBase(nR); b.h = nV; n.h = toBase(tH) - nV; if (iN) n.y = b.y + b.h; else b.y = n.y + n.h; } } renderPartsUI(); drawPreview(); }
@@ -308,7 +265,6 @@ function deletePart(idx) { if (currentBoxes.length <= 1) return alert("LAST PART
 function updatePart(i, f, v) { saveHistory(); currentBoxes[i][f] = (f==='p') ? parseInt(v) : v; if(f==='p') { currentBoxes[i].gBars = Array.from({length: v}, () => ({h:0,v:0})); renderPartsUI(); } if(f==='type') renderPartsUI(); drawPreview(); }
 
 function drawTick(ctx, x, y, iV) { ctx.beginPath(); ctx.strokeStyle = "#0f172a"; ctx.lineWidth = 1.5; if(iV) { ctx.moveTo(x-5, y); ctx.lineTo(x+5, y); } else { ctx.moveTo(x, y-5); ctx.lineTo(x, y+5); } ctx.stroke(); }
-
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) { if(!text) return y; let tS = text.toUpperCase(); let cX = x; let line = ""; for (let i = 0; i < tS.length; i++) { let char = tS[i]; let tW = ctx.measureText(line + char).width; if (cX + tW > x + maxWidth) { ctx.fillText(line, cX, y); y += lineHeight; cX = x; line = char; } else { line += char; } } ctx.fillText(line, cX, y); return y + lineHeight; }
 
 function wrapSpecLine(ctx, label, value, x, y, maxWidth, lineHeight) {
@@ -320,7 +276,9 @@ function wrapSpecLine(ctx, label, value, x, y, maxWidth, lineHeight) {
 }
 
 function drawPreview() { 
-    let d = { w: parseFloat(document.getElementById("w").value)||0, h: parseFloat(document.getElementById("h").value)||0, unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: currentBoxes }; 
+    let d = { 
+        w: parseFloat(document.getElementById("w").value)||0, h: parseFloat(document.getElementById("h").value)||0, unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: currentBoxes 
+    }; 
     drawIndividual(document.getElementById("previewCanvas"), d, true); 
 }
 
@@ -349,12 +307,17 @@ function drawIndividual(canvas, d, isP) {
     if(!d.tag) { ctx.fillStyle = "#ef4444"; ctx.fillText("PENDING", sX + idLW, sY); } else { ctx.fillStyle = "#4f46e5"; ctx.fillText(d.tag.toUpperCase(), sX + idLW, sY); }
     sY += 24; ctx.fillStyle = "#0f172a"; ctx.font="bold 11px Arial"; ctx.fillText("ENGINEERING SPECIFICATIONS:", sX, sY); sY += 16;
     
+    // NEW: Calculate Total Rate
+    let calcTotal = (d.area && d.rate) ? "₹ " + (parseFloat(d.area) * parseFloat(d.rate)).toFixed(2) : "";
+
     let sps = [
         {l:"SERIES SYSTEM: ", v:d.series}, {l:"GLASS: ", v:d.glass}, 
         {l:"COLOR: ", v:d.color}, {l:"LOCK TYPE: ", v:d.lock}, 
         {l:"LOCK POSITION: ", v:d.lockPos}, {l:"MESH OPTION: ", v:d.mesh}, 
-        {l:"AREA (SQ.FT): ", v:d.area}, {l:"RATE / SQ.FT: ", v:d.rate}
+        {l:"AREA (SQ.FT): ", v:d.area}, {l:"RATE / SQ.FT: ", v:d.rate},
+        {l:"TOTAL RATE: ", v:calcTotal} 
     ];
+    
     sps.forEach(s => { sY = wrapSpecLine(ctx, s.l, s.v, sX, sY, mW, 15); });
     if(d.notes) { sY += 5; ctx.fillStyle = "#0f172a"; ctx.font="bold 11px Arial"; ctx.fillText("NOTES: ", sX, sY); sY += 15; ctx.font="11px Arial"; wrapText(ctx, d.notes, sX, sY, mW, 15); }
 }
@@ -366,9 +329,7 @@ function addOrUpdateWindow() {
     }; 
     let idx = parseInt(document.getElementById("editIndex").value); 
     if(idx === -1) projectWindows.push(d); else projectWindows[idx] = d; 
-    
     renderProject(); clearAll(); 
-    
     setTimeout(() => { document.getElementById("projectSheet").scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
 }
 

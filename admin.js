@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
     checkAdminAccess();
 });
 
-// 1. Dedicated Admin Login
 async function handleAdminLogin() {
     const email = document.getElementById('adminEmail').value;
     const password = document.getElementById('adminPassword').value;
@@ -23,22 +22,19 @@ async function handleAdminLogin() {
         msg.innerText = error.message;
     } else {
         msg.innerText = "";
-        checkAdminAccess(); // Validate their role immediately
+        checkAdminAccess(); 
     }
 }
 
-// 2. Security Check & UI Routing
 async function checkAdminAccess() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     
     if (!session) {
-        // Show login screen, hide dashboard
         document.getElementById('adminAuthScreen').style.display = 'flex';
         document.getElementById('adminDashboard').style.display = 'none';
         return;
     }
 
-    // Check role in database
     const { data: profile } = await supabaseClient
         .from('profiles')
         .select('role')
@@ -46,7 +42,6 @@ async function checkAdminAccess() {
         .single();
 
     if (!profile || profile.role !== 'admin') {
-        // Intruder detected: Sign them out and alert
         await supabaseClient.auth.signOut();
         document.getElementById('adminAuthMsg').innerText = "Access Denied: Administrator privileges required.";
         document.getElementById('adminAuthMsg').style.color = "var(--danger)";
@@ -56,13 +51,11 @@ async function checkAdminAccess() {
         return;
     }
 
-    // Access Granted!
     document.getElementById('adminAuthScreen').style.display = 'none';
     document.getElementById('adminDashboard').style.display = 'block';
     loadUsers();
 }
 
-// 3. Fetch and Display Users
 async function loadUsers() {
     const { data: profiles, error } = await supabaseClient
         .from('profiles')
@@ -72,7 +65,7 @@ async function loadUsers() {
     tbody.innerHTML = '';
 
     if (error) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--danger); padding: 20px;">Error loading users.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); padding: 20px;">Error loading users.</td></tr>`;
         return;
     }
 
@@ -88,8 +81,16 @@ async function loadUsers() {
             ? `<button class="btn btn-micro" style="background: var(--accent-primary); color: white; border: none;" onclick="updateStatus('${user.id}', 'cleared')">✅ Clear Payment</button>`
             : `<button class="btn btn-micro" onclick="updateStatus('${user.id}', 'pending')">🔒 Revoke Access</button>`;
 
+        // New layout showing User Info + Contact Details
         tr.innerHTML = `
-            <td style="padding: 12px; font-weight: 500;">${user.email}</td>
+            <td style="padding: 12px;">
+                <span style="font-weight: 600; color: var(--brand-dark);">${user.full_name || 'N/A'}</span><br>
+                <span style="color: var(--accent-primary); font-size: 11px;">${user.email}</span>
+            </td>
+            <td style="padding: 12px; color: var(--text-muted); font-size: 12px;">
+                📞 ${user.phone || 'No Phone'}<br>
+                📍 ${user.address || 'No Address'}
+            </td>
             <td style="padding: 12px; color: var(--text-muted);">${user.role}</td>
             <td style="padding: 12px;">${statusBadge}</td>
             <td style="padding: 12px;">${user.role === 'admin' ? '<span style="color: #cbd5e1;">Admin Account</span>' : actionBtn}</td>
@@ -98,7 +99,6 @@ async function loadUsers() {
     });
 }
 
-// 4. Handle Button Clicks
 async function updateStatus(userId, newStatus) {
     const { error } = await supabaseClient
         .from('profiles')
@@ -112,8 +112,7 @@ async function updateStatus(userId, newStatus) {
     }
 }
 
-// 5. Admin Logout
 async function adminLogout() {
     await supabaseClient.auth.signOut();
-    window.location.reload(); // Will trigger checkAdminAccess and show login box
+    window.location.reload(); 
 }
