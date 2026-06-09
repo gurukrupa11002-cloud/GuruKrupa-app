@@ -108,6 +108,7 @@ async function handleSignUp() {
     msg.style.color = "var(--text-muted)"; 
     msg.innerText = "Creating account...";
     
+    // 1. Create the Auth Login
     const { data, error } = await supabaseClient.auth.signUp({ email, password });
     
     if (error) { 
@@ -115,31 +116,20 @@ async function handleSignUp() {
         msg.innerText = error.message; 
     } else { 
         if(data.user) {
-            // FIX: Bulletproof Retry Logic. Checks every 1 second until the data is successfully written.
-            let attempts = 0;
-            let saveInterval = setInterval(async () => {
-                attempts++;
-                
-                const { data: updatedData, error: updateError } = await supabaseClient
-                    .from('profiles')
-                    .update({
-                        full_name: name,
-                        phone: phone,
-                        address: address
-                    })
-                    .eq('id', data.user.id)
-                    .select(); // Ask Supabase to return the row to confirm it worked
-                
-                // If it successfully wrote the data, stop trying
-                if (updatedData && updatedData.length > 0) {
-                    clearInterval(saveInterval);
-                }
-                
-                // Stop trying after 10 attempts to save battery/performance
-                if (attempts > 10) {
-                    clearInterval(saveInterval);
-                }
-            }, 1000);
+            // 2. THE FIX: Force an 'upsert' to instantly inject the data into the profiles table
+            const { error: profileError } = await supabaseClient.from('profiles').upsert({
+                id: data.user.id,
+                email: email,
+                full_name: name,
+                phone: phone,
+                address: address,
+                role: 'client',
+                payment_status: 'pending'
+            });
+
+            if (profileError) {
+                console.error("Could not save profile details:", profileError);
+            }
         }
         
         msg.style.color = "var(--accent-primary)"; 
