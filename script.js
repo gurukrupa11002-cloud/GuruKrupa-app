@@ -319,13 +319,26 @@ function deletePart(idx) { if (currentBoxes.length <= 1) return alert("LAST PART
 function updatePart(i, f, v) { saveHistory(); currentBoxes[i][f] = (f==='p') ? parseInt(v) : v; if(f==='p') { currentBoxes[i].gBars = Array.from({length: v}, () => ({h:0,v:0})); renderPartsUI(); } if(f==='type') renderPartsUI(); drawPreview(); }
 
 function drawTick(ctx, x, y, iV) { ctx.beginPath(); ctx.strokeStyle = "#0f172a"; ctx.lineWidth = 1.5; if(iV) { ctx.moveTo(x-5, y); ctx.lineTo(x+5, y); } else { ctx.moveTo(x, y-5); ctx.lineTo(x, y+5); } ctx.stroke(); }
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) { if(!text) return y; let tS = text.toUpperCase(); let cX = x; let line = ""; for (let i = 0; i < tS.length; i++) { let char = tS[i]; let tW = ctx.measureText(line + char).width; if (cX + tW > x + maxWidth) { ctx.fillText(line, cX, y); y += lineHeight; cX = x; line = char; } else { line += char; } } ctx.fillText(line, cX, y); return y + lineHeight; }
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) { if(!text) return y; let tS = String(text).toUpperCase(); let cX = x; let line = ""; for (let i = 0; i < tS.length; i++) { let char = tS[i]; let tW = ctx.measureText(line + char).width; if (cX + tW > x + maxWidth) { ctx.fillText(line, cX, y); y += lineHeight; cX = x; line = char; } else { line += char; } } ctx.fillText(line, cX, y); return y + lineHeight; }
 
+// FIX: Prevents numeric values like Area and Rate from crashing the canvas when calling .toUpperCase()
 function wrapSpecLine(ctx, label, value, x, y, maxWidth, lineHeight) {
     ctx.fillStyle = "#475569"; ctx.font="600 11px Arial"; let lblW = ctx.measureText(label).width; ctx.fillText(label, x, y);
-    if(!value) { ctx.fillStyle = "#ef4444"; ctx.font="600 11px Arial"; ctx.fillText("PENDING", x + lblW, y); return y + lineHeight; } 
-    ctx.fillStyle = "#0f172a"; ctx.font="11px Arial"; let valStr = value.toUpperCase(); let cX = x + lblW; let line = "";
-    for (let i = 0; i < valStr.length; i++) { let char = valStr[i]; let tW = ctx.measureText(line + char).width; if (cX + tW > x + maxWidth) { ctx.fillText(line, cX, y); y += lineHeight; cX = x; line = char; } else { line += char; } }
+    
+    if(value === undefined || value === null || value === "" || (typeof value === 'number' && isNaN(value))) { 
+        ctx.fillStyle = "#ef4444"; ctx.font="600 11px Arial"; ctx.fillText("PENDING", x + lblW, y); 
+        return y + lineHeight; 
+    } 
+    
+    ctx.fillStyle = "#0f172a"; ctx.font="11px Arial"; 
+    let valStr = String(value).toUpperCase(); 
+    let cX = x + lblW; let line = "";
+    
+    for (let i = 0; i < valStr.length; i++) { 
+        let char = valStr[i]; let tW = ctx.measureText(line + char).width; 
+        if (cX + tW > x + maxWidth) { ctx.fillText(line, cX, y); y += lineHeight; cX = x; line = char; } 
+        else { line += char; } 
+    }
     ctx.fillText(line, cX, y); return y + lineHeight;
 }
 
@@ -383,7 +396,7 @@ function drawIndividual(canvas, d, isP) {
     let idLW = ctx.measureText("TAG NO / S.NO: ").width; 
     
     if(!d.tag) { ctx.fillStyle = "#ef4444"; ctx.fillText("PENDING", sX + idLW, sY); 
-    } else { ctx.fillStyle = "#4f46e5"; ctx.fillText(d.tag.toUpperCase(), sX + idLW, sY); }
+    } else { ctx.fillStyle = "#4f46e5"; ctx.fillText(String(d.tag).toUpperCase(), sX + idLW, sY); }
     
     sY += 24; ctx.fillStyle = "#0f172a"; ctx.font="bold 11px Arial"; ctx.fillText("ENGINEERING SPECIFICATIONS:", sX, sY); sY += 16;
 
