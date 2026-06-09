@@ -321,19 +321,12 @@ function updatePart(i, f, v) { saveHistory(); currentBoxes[i][f] = (f==='p') ? p
 function drawTick(ctx, x, y, iV) { ctx.beginPath(); ctx.strokeStyle = "#0f172a"; ctx.lineWidth = 1.5; if(iV) { ctx.moveTo(x-5, y); ctx.lineTo(x+5, y); } else { ctx.moveTo(x, y-5); ctx.lineTo(x, y+5); } ctx.stroke(); }
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) { if(!text) return y; let tS = String(text).toUpperCase(); let cX = x; let line = ""; for (let i = 0; i < tS.length; i++) { let char = tS[i]; let tW = ctx.measureText(line + char).width; if (cX + tW > x + maxWidth) { ctx.fillText(line, cX, y); y += lineHeight; cX = x; line = char; } else { line += char; } } ctx.fillText(line, cX, y); return y + lineHeight; }
 
-// FIX: Prevents numeric values like Area and Rate from crashing the canvas when calling .toUpperCase()
 function wrapSpecLine(ctx, label, value, x, y, maxWidth, lineHeight) {
     ctx.fillStyle = "#475569"; ctx.font="600 11px Arial"; let lblW = ctx.measureText(label).width; ctx.fillText(label, x, y);
-    
     if(value === undefined || value === null || value === "" || (typeof value === 'number' && isNaN(value))) { 
-        ctx.fillStyle = "#ef4444"; ctx.font="600 11px Arial"; ctx.fillText("PENDING", x + lblW, y); 
-        return y + lineHeight; 
+        ctx.fillStyle = "#ef4444"; ctx.font="600 11px Arial"; ctx.fillText("PENDING", x + lblW, y); return y + lineHeight; 
     } 
-    
-    ctx.fillStyle = "#0f172a"; ctx.font="11px Arial"; 
-    let valStr = String(value).toUpperCase(); 
-    let cX = x + lblW; let line = "";
-    
+    ctx.fillStyle = "#0f172a"; ctx.font="11px Arial"; let valStr = String(value).toUpperCase(); let cX = x + lblW; let line = "";
     for (let i = 0; i < valStr.length; i++) { 
         let char = valStr[i]; let tW = ctx.measureText(line + char).width; 
         if (cX + tW > x + maxWidth) { ctx.fillText(line, cX, y); y += lineHeight; cX = x; line = char; } 
@@ -347,7 +340,7 @@ function drawPreview() {
         w: parseFloat(document.getElementById("w").value)||0, h: parseFloat(document.getElementById("h").value)||0, 
         unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, 
         glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, 
-        lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, 
+        lock: document.getElementById("lockSpec").value, 
         series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), 
         qty: document.getElementById("qtySpec").value,
         rate: document.getElementById("rateSpec").value, 
@@ -403,10 +396,8 @@ function drawIndividual(canvas, d, isP) {
     let sps = [
         {l:"SERIES SYSTEM: ", v:d.series}, {l:"GLASS: ", v:d.glass}, 
         {l:"COLOR: ", v:d.color}, {l:"LOCK TYPE: ", v:d.lock}, 
-        {l:"LOCK POSITION: ", v:d.lockPos}, {l:"MESH OPTION: ", v:d.mesh}, 
-        {l:"QUANTITY: ", v:qty},
-        {l:"AREA (SQ.FT): ", v:area}, 
-        {l:"RATE / SQ.FT: ", v:rate},
+        {l:"MESH OPTION: ", v:d.mesh}, {l:"QUANTITY: ", v:qty},
+        {l:"AREA (SQ.FT): ", v:area}, {l:"RATE / SQ.FT: ", v:rate},
         {l:"TOTAL AMOUNT: ", v: rate > 0 ? "₹ " + amount : ""}
     ];
     
@@ -423,7 +414,7 @@ function drawIndividual(canvas, d, isP) {
 function addOrUpdateWindow() { 
     if(currentBoxes.length===0) return alert("ENTER SIZE"); 
     let d = { 
-        w: parseFloat(document.getElementById("w").value), h: parseFloat(document.getElementById("h").value), unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), 
+        w: parseFloat(document.getElementById("w").value), h: parseFloat(document.getElementById("h").value), unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), 
         qty: document.getElementById("qtySpec").value,
         area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: JSON.parse(JSON.stringify(currentBoxes)) 
     }; 
@@ -434,7 +425,7 @@ function addOrUpdateWindow() {
 }
 
 function clearAll() { 
-    document.getElementById("w").value = ""; document.getElementById("h").value = ""; document.getElementById("winTag").value = ""; document.getElementById("notes").value = ""; document.getElementById("glassSpec").value = ""; document.getElementById("colorSpec").value = ""; document.getElementById("lockSpec").value = ""; document.getElementById("lockHSpec").value = "CENTRE"; document.getElementById("seriesSpec").value = ""; document.getElementById("seriesManual").value = ""; document.getElementById("seriesManual").classList.add("hidden"); document.getElementById("areaSpec").value = ""; document.getElementById("rateSpec").value = ""; document.getElementById("meshSpec").value = ""; document.getElementById("meshManual").value = ""; document.getElementById("meshManual").classList.add("hidden"); 
+    document.getElementById("w").value = ""; document.getElementById("h").value = ""; document.getElementById("winTag").value = ""; document.getElementById("notes").value = ""; document.getElementById("glassSpec").value = ""; document.getElementById("colorSpec").value = ""; document.getElementById("lockSpec").value = ""; document.getElementById("seriesSpec").value = ""; document.getElementById("seriesManual").value = ""; document.getElementById("seriesManual").classList.add("hidden"); document.getElementById("areaSpec").value = ""; document.getElementById("rateSpec").value = ""; document.getElementById("meshSpec").value = ""; document.getElementById("meshManual").value = ""; document.getElementById("meshManual").classList.add("hidden"); 
     document.getElementById("qtySpec").value = "1";
     currentBoxes = []; historyStack = []; document.getElementById('partsManager').innerHTML = `<div class="empty-state"><div class="empty-icon">📏</div>Input dimensions to initialize structural grid</div>`; document.getElementById("editIndex").value = "-1"; drawPreview(); 
 }
@@ -468,9 +459,9 @@ function assignSpecValues(d) {
 }
 
 function copyWindow(i) { 
-    let d = projectWindows[i]; document.getElementById("w").value = d.w; document.getElementById("h").value = d.h; document.getElementById("unit").value = d.unit; document.getElementById("winTag").value = d.tag + " (COPY)"; document.getElementById("glassSpec").value = d.glass || ""; document.getElementById("colorSpec").value = d.color || ""; document.getElementById("lockSpec").value = d.lock || ""; document.getElementById("lockHSpec").value = d.lockPos || "CENTRE"; assignSpecValues(d); document.getElementById("qtySpec").value = d.qty || "1"; document.getElementById("areaSpec").value = d.area || ""; document.getElementById("rateSpec").value = d.rate || ""; document.getElementById("notes").value = d.notes; currentBoxes = JSON.parse(JSON.stringify(d.boxes)); document.getElementById("editIndex").value = "-1"; renderPartsUI(); drawPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
+    let d = projectWindows[i]; document.getElementById("w").value = d.w; document.getElementById("h").value = d.h; document.getElementById("unit").value = d.unit; document.getElementById("winTag").value = d.tag + " (COPY)"; document.getElementById("glassSpec").value = d.glass || ""; document.getElementById("colorSpec").value = d.color || ""; document.getElementById("lockSpec").value = d.lock || ""; assignSpecValues(d); document.getElementById("qtySpec").value = d.qty || "1"; document.getElementById("areaSpec").value = d.area || ""; document.getElementById("rateSpec").value = d.rate || ""; document.getElementById("notes").value = d.notes; currentBoxes = JSON.parse(JSON.stringify(d.boxes)); document.getElementById("editIndex").value = "-1"; renderPartsUI(); drawPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
 function editWindow(i) { 
-    let d = projectWindows[i]; document.getElementById("w").value = d.w; document.getElementById("h").value = d.h; document.getElementById("unit").value = d.unit; document.getElementById("winTag").value = d.tag; document.getElementById("glassSpec").value = d.glass || ""; document.getElementById("colorSpec").value = d.color || ""; document.getElementById("lockSpec").value = d.lock || ""; document.getElementById("lockHSpec").value = d.lockPos || "CENTRE"; assignSpecValues(d); document.getElementById("qtySpec").value = d.qty || "1"; document.getElementById("areaSpec").value = d.area || ""; document.getElementById("rateSpec").value = d.rate || ""; document.getElementById("notes").value = d.notes; currentBoxes = JSON.parse(JSON.stringify(d.boxes)); historyStack = []; document.getElementById("editIndex").value = i; renderPartsUI(); drawPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
+    let d = projectWindows[i]; document.getElementById("w").value = d.w; document.getElementById("h").value = d.h; document.getElementById("unit").value = d.unit; document.getElementById("winTag").value = d.tag; document.getElementById("glassSpec").value = d.glass || ""; document.getElementById("colorSpec").value = d.color || ""; document.getElementById("lockSpec").value = d.lock || ""; assignSpecValues(d); document.getElementById("qtySpec").value = d.qty || "1"; document.getElementById("areaSpec").value = d.area || ""; document.getElementById("rateSpec").value = d.rate || ""; document.getElementById("notes").value = d.notes; currentBoxes = JSON.parse(JSON.stringify(d.boxes)); historyStack = []; document.getElementById("editIndex").value = i; renderPartsUI(); drawPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
 }
