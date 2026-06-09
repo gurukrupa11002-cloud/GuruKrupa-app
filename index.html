@@ -78,7 +78,7 @@
             <div style="background: #f8fafc; padding: 15px; border-radius: var(--radius-md); border: 1px dashed #cbd5e1; margin-bottom: 20px;">
                 <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600;">Scan to Pay via UPI:</p>
                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi%3A%2F%2Fpay%3Fpa%3Djadavkaran293%40oksbi" alt="UPI QR" style="width: 150px; height: 150px; border-radius: 8px;">
-                <p style="margin: 10px 0 0 0; font-size: 11px; color: var(--text-muted);">UPI ID: yourclient@upi</p>
+                <p style="margin: 10px 0 0 0; font-size: 11px; color: var(--text-muted);">UPI ID: jadavkaran293@oksbi</p>
             </div>
             <button class="btn btn-outline-primary full-width" onclick="checkSession()">I have paid, refresh status</button>
             <button class="btn btn-glass full-width" style="margin-top: 10px; color: var(--text-muted); border-color: var(--border-color);" onclick="supabaseClient.auth.signOut().then(() => location.reload())">Log Out</button>
