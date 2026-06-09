@@ -39,10 +39,6 @@ body {
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-
-/* =========================================
-   NEW SPLIT-SCREEN AUTHENTICATION DESIGN
-   ========================================= */
 .auth-layout {
     display: flex;
     height: 100vh;
@@ -111,7 +107,7 @@ body {
 .auth-form-box p { margin: 0 0 25px 0; font-size: 14px; color: var(--text-muted); }
 
 .auth-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;}
-.auth-input { width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; font-family: inherit; margin-bottom: 20px; background: #f8fafc; transition: all 0.2s;}
+.auth-input { width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; font-family: inherit; margin-bottom: 20px; background: #f8fafc; transition: all 0.2s; box-sizing: border-box;}
 .auth-input:focus { outline: none; border-color: var(--accent-primary); background: #fff; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
 
 .auth-btn { padding: 14px; font-size: 15px; border-radius: var(--radius-md); margin-top: 10px;}
@@ -120,13 +116,6 @@ body {
 .auth-links a { color: var(--accent-primary); font-weight: 600; text-decoration: none; transition: color 0.2s; }
 .auth-links a:hover { color: var(--brand-dark); }
 .auth-msg { text-align: center; min-height: 20px; margin-top: 10px; font-weight: 500;}
-
-@media (max-width: 900px) {
-    .auth-layout { flex-direction: column; }
-    .auth-banner { display: none; } /* Hide banner on small screens */
-}
-/* ========================================= */
-
 
 .app-container {
     display: flex;
@@ -222,6 +211,7 @@ input, select, textarea {
     color: var(--text-main);
     background: #f8fafc;
     transition: all 0.2s ease;
+    box-sizing: border-box;
 }
 
 .input-stack input { margin-bottom: 8px; }
@@ -445,6 +435,61 @@ input:focus, select:focus, textarea:focus {
 .meta-table td { padding: 4px 10px; border: 1px solid #000; }
 .document-title { text-align: center; font-size: 24px; margin: 20px 0;}
 .welcome-letter-text { white-space: pre-wrap; margin-top: 20px; line-height: 1.6; font-size: 16px; text-transform: uppercase; }
+
+
+/* =========================================
+   RESPONSIVE DESIGN (Tablets & Mobile)
+   ========================================= */
+
+@media (max-width: 1150px) {
+    .workspace {
+        grid-template-columns: 1fr 1fr;
+        overflow-y: auto; 
+    }
+    .col-preview {
+        grid-column: span 2; 
+    }
+    .canvas-wrapper { width: 100%; display: flex; justify-content: center; }
+}
+
+@media (max-width: 900px) {
+    .auth-layout { flex-direction: column; }
+    .auth-banner { display: none; } /* Hide large branding on small screens */
+}
+
+@media (max-width: 768px) {
+    body { overflow-y: auto; }
+    
+    .workspace {
+        display: flex;
+        flex-direction: column;
+        overflow: visible; 
+        padding: 15px;
+    }
+    
+    .panel, .panel-body { overflow: visible; }
+    
+    .top-bar {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .global-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .global-actions .btn { flex: 1 1 calc(50% - 10px); }
+    
+    .spec-grid { grid-template-columns: 1fr; } 
+    
+    .size-input-row { flex-direction: column; }
+    .input-mini-flex { width: 100%; }
+    
+    .auth-form-box { padding: 30px 20px; }
+}
 
 /* Strictly hides UI during ACTUAL PDF Print */
 @media print { 

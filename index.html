@@ -15,11 +15,7 @@
 
 <body>
 
-    <!-- ==========================================
-         NEW PREMIUM SPLIT-SCREEN AUTHENTICATION
-         ========================================== -->
     <div id="authScreen" class="auth-layout">
-        <!-- Left Branding Side -->
         <div class="auth-banner">
             <div class="auth-banner-content">
                 <div class="brand-icon-large">📐</div>
@@ -33,15 +29,12 @@
             </div>
         </div>
 
-        <!-- Right Form Side -->
         <div class="auth-form-container">
             <div class="auth-form-box">
                 <h2 id="authTitle">Welcome Back</h2>
                 <p id="authSubtitle">Sign in to access your workspace</p>
                 
-                <!-- Dynamic Form Area -->
                 <div id="authFields">
-                    <!-- Registration Only Fields -->
                     <div id="signupFields" style="display: none;">
                         <label class="auth-label">Full Name / Company Name <span style="color:red;">*</span></label>
                         <input type="text" id="regName" class="auth-input" placeholder="e.g. John Doe / ABC Corp">
@@ -62,12 +55,10 @@
                     </div>
                 </div>
                 
-                <!-- Dynamic Action Buttons -->
                 <button id="loginBtn" class="btn btn-gradient full-width shadow-hover auth-btn" onclick="handleLogin()">Secure Log In</button>
                 <button id="signupBtn" class="btn btn-gradient full-width shadow-hover auth-btn" onclick="handleSignUp()" style="display: none;">Create Account</button>
                 <button id="resetBtn" class="btn btn-gradient full-width shadow-hover auth-btn" onclick="handlePasswordReset()" style="display: none;">Send Reset Link</button>
                 
-                <!-- Toggle Links -->
                 <div class="auth-links">
                     <p id="toggleSignUpText">Don't have an account? <a href="javascript:void(0)" onclick="toggleAuthMode('signup')">Sign up here</a></p>
                     <p id="toggleLoginText" style="display: none;">Already have an account? <a href="javascript:void(0)" onclick="toggleAuthMode('login')">Log in</a></p>
@@ -78,12 +69,9 @@
             </div>
         </div>
     </div>
-    <!-- ========================================== -->
 
-    
-    <!-- Payment & Password Update Overlays -->
     <div id="paymentScreen" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 99; position: absolute; width: 100%;">
-        <div style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 400px; text-align: center; border: 1px solid var(--border-color);">
+        <div style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 90%; max-width: 400px; text-align: center; border: 1px solid var(--border-color); box-sizing: border-box;">
             <div style="font-size: 40px; margin-bottom: 15px;">🔒</div>
             <h2 style="margin-top: 0; color: var(--brand-dark);">Payment Pending</h2>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5;">Your account has been created successfully, but your access is currently locked pending payment verification.</p>
@@ -98,7 +86,7 @@
     </div>
     
     <div id="updatePasswordScreen" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-app); z-index: 101; position: absolute; width: 100%;">
-        <div style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 320px; text-align: center; border: 1px solid var(--border-color);">
+        <div style="background: white; padding: 40px; border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); width: 90%; max-width: 320px; text-align: center; border: 1px solid var(--border-color); box-sizing: border-box;">
             <div style="font-size: 40px; margin-bottom: 15px;">🔑</div>
             <h2 style="margin-top: 0; color: var(--brand-dark);">Reset Password</h2>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px;">Please enter your new secure password.</p>
@@ -108,20 +96,17 @@
         </div>
     </div>
 
-    <!-- Cloud Project Browser Modal -->
     <div id="cloudBrowser" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-        <div style="background: white; padding: 30px; border-radius: var(--radius-lg); width: 600px; max-height: 80vh; display: flex; flex-direction: column;">
+        <div style="background: white; padding: 30px; border-radius: var(--radius-lg); width: 90%; max-width: 600px; max-height: 80vh; display: flex; flex-direction: column; box-sizing: border-box;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: var(--brand-dark);">☁️ Your Cloud Projects</h2>
                 <button class="btn btn-glass" style="color: var(--text-muted); border-color: var(--border-color);" onclick="document.getElementById('cloudBrowser').style.display='none'">Close</button>
             </div>
             <div id="cloudProjectList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
-                <!-- Projects will be loaded here via JS -->
-            </div>
+                </div>
         </div>
     </div>
 
-    <!-- Main Workspace -->
     <div class="no-print app-container">
         <header class="top-bar">
             <div class="brand">
@@ -133,7 +118,7 @@
             </div>
             <div class="global-actions">
                 <button class="btn btn-glass" onclick="saveProjectToCloud()">☁️ Save to Cloud</button>
-                <button class="btn btn-glass" onclick="openCloudBrowser()">☁️ Load from Cloud</button>
+                <button class="btn btn-glass" onclick="openCloudBrowser()">☁️ Load Cloud</button>
                 <button class="btn btn-danger" onclick="createNewProject()">Reset Form</button>
                 <button class="btn btn-gradient print-btn" onclick="window.print()">🖨️ Export PDF</button>
                 <button class="btn btn-glass" style="border-color: rgba(239, 68, 68, 0.5); color: #fca5a5;" onclick="handleLogout()">🚪 Log Out</button>
@@ -263,7 +248,6 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
         </main>
     </div>
 
-    <!-- Generated Project Documents -->
     <div id="projectSheet" style="display:none;">
         <div style="text-align: center; color: var(--brand-dark); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;" class="no-print">
             ↓ Generated Project Documents ↓
@@ -287,6 +271,5 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
             <tbody><tr><td><div id="windowList" class="window-list-container" style="display: flex; flex-wrap: wrap; justify-content: center;"></div></td></tr></tbody>
         </table>
     </div>
-
 </body>
 </html>
