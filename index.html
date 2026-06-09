@@ -102,8 +102,7 @@
                 <h2 style="margin: 0; color: var(--brand-dark);">☁️ Your Cloud Projects</h2>
                 <button class="btn btn-glass" style="color: var(--text-muted); border-color: var(--border-color);" onclick="document.getElementById('cloudBrowser').style.display='none'">Close</button>
             </div>
-            <div id="cloudProjectList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
-                </div>
+            <div id="cloudProjectList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;"></div>
         </div>
     </div>
 
@@ -180,8 +179,8 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
                 </div>
                 <div class="panel-body">
                     <div class="card-section">
-                        <label>Asset Identification</label>
-                        <input type="text" id="winTag" placeholder="e.g., Master Bedroom Window (W1)" class="hero-input">
+                        <label>Tag No. / Serial No. (S.No.)</label>
+                        <input type="text" id="winTag" placeholder="e.g., W1" class="hero-input">
                     </div>
 
                     <div class="spec-grid">
@@ -218,7 +217,8 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
                             <input type="text" id="meshManual" class="hidden manual-input" placeholder="Enter Custom Mesh" oninput="drawPreview()">
                         </div>
 
-                        <div class="form-control"><label>Area in Sq.ft</label><input type="number" id="areaSpec" placeholder="Enter Area" oninput="drawPreview()"></div>
+                        <div class="form-control"><label>Quantity</label><input type="number" id="qtySpec" value="1" min="1" oninput="drawPreview()"></div>
+                        <div class="form-control"><label>Area in Sq.ft</label><input type="number" id="areaSpec" placeholder="Auto Calculated" readonly></div>
                         <div class="form-control"><label>Rate in Sq.ft</label><input type="number" id="rateSpec" placeholder="Enter Rate" oninput="drawPreview()"></div>
                     </div>
 

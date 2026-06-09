@@ -33,24 +33,22 @@ function toggleAuthMode(mode) {
         document.getElementById('toggleLoginText').style.display = 'block';
     } 
     else if (mode === 'reset') {
-        // FIX: Display "Contact Admin" message instead of email form
         document.getElementById('authTitle').innerText = 'Reset Password';
         document.getElementById('authSubtitle').innerHTML = 'Email services are disabled for this workspace.<br><br><span style="color: var(--brand-dark); font-weight: 600;">Please contact your System Administrator to obtain a new temporary password.</span>';
         
         document.getElementById('signupFields').style.display = 'none';
         document.getElementById('passwordWrapper').style.display = 'none';
-        emailInput.style.display = 'none'; // Hide the email box
+        emailInput.style.display = 'none'; 
         
         document.getElementById('loginBtn').style.display = 'none';
         document.getElementById('signupBtn').style.display = 'none';
-        document.getElementById('resetBtn').style.display = 'none'; // Hide the submit button
+        document.getElementById('resetBtn').style.display = 'none'; 
         
         document.getElementById('toggleForgotText').style.display = 'none';
         document.getElementById('toggleSignUpText').style.display = 'none';
         document.getElementById('toggleLoginText').style.display = 'block';
     } 
     else {
-        // Default Login Mode
         document.getElementById('authTitle').innerText = 'Welcome Back';
         document.getElementById('authSubtitle').innerHTML = 'Sign in to access your workspace';
         document.getElementById('signupFields').style.display = 'none';
@@ -101,7 +99,6 @@ async function handleSignUp() {
     const address = document.getElementById('regAddress').value;
     const msg = document.getElementById('authMessage');
     
-    // Strict Validation for required fields
     if(!email || !password || !name || !phone || !address) {
         msg.style.color = "var(--danger)"; 
         msg.innerText = "Please fill in all fields to create your account.";
@@ -118,7 +115,6 @@ async function handleSignUp() {
         msg.innerText = error.message; 
     } else { 
         if(data.user) {
-            // Give the trigger a moment to create the profile row, then update it with client info
             setTimeout(async () => {
                 await supabaseClient.from('profiles').update({
                     full_name: name,
@@ -149,7 +145,6 @@ async function handleLogout() {
     window.location.reload(); 
 }
 
-// Deprecated since emails are off, but kept for future reference
 async function handlePasswordReset() {
     alert("Email services are disabled. Please contact the administrator.");
 }
@@ -334,11 +329,9 @@ function wrapSpecLine(ctx, label, value, x, y, maxWidth, lineHeight) {
     ctx.fillText(line, cX, y); return y + lineHeight;
 }
 
-function drawPreview() { 
-    let d = { w: parseFloat(document.getElementById("w").value)||0, h: parseFloat(document.getElementById("h").value)||0, unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: currentBoxes }; 
-    drawIndividual(document.getElementById("previewCanvas"), d, true); 
-}
-
+/* =======================================================
+   UPDATED DRAW INDIVIDUAL (Calculations & Tag Labels)
+   ======================================================= */
 function drawIndividual(canvas, d, isP) {
     var ctx = canvas.getContext("2d"); ctx.fillStyle = "white"; ctx.fillRect(0,0, canvas.width, canvas.height); 
     if(d.w <= 0 || d.h <= 0 || d.boxes.length === 0) return;
@@ -360,30 +353,61 @@ function drawIndividual(canvas, d, isP) {
         if (b.type === 'door') { ctx.setLineDash([5, 5]); ctx.beginPath(); if(b.doorType === 'double') { let gap = 10; let pW = (bw - gap) / 2; ctx.moveTo(bx, by); ctx.lineTo(bx+pW, by+bh/2); ctx.lineTo(bx, by+bh); ctx.moveTo(bx+bw, by); ctx.lineTo(bx+bw-pW, by+bh/2); ctx.lineTo(bx+bw, by+bh); } else if(b.doorType === '1L') { ctx.moveTo(bx, by); ctx.lineTo(bx+bw, by+bh/2); ctx.lineTo(bx, by+bh); } else if(b.doorType === '1R') { ctx.moveTo(bx+bw, by); ctx.lineTo(bx, by+bh/2); ctx.lineTo(bx+bw, by+bh); } else if(b.doorType === 'tophung') { ctx.moveTo(bx, by); ctx.lineTo(bx+bw/2, by+bh); ctx.lineTo(bx+bw, by); } ctx.stroke(); ctx.setLineDash([]); } else if (b.type === 'fan') { let r = Math.min(bw, bh)*0.3; ctx.beginPath(); ctx.arc(bx+bw/2, by+bh/2, r, 0, 2*Math.PI); ctx.stroke(); ctx.moveTo(bx+bw/2-r*0.7, by+bh/2-r*0.7); ctx.lineTo(bx+bw/2+r*0.7, by+bh/2+r*0.7); ctx.moveTo(bx+bw/2+r*0.7, by+bh/2-r*0.7); ctx.lineTo(bx+bw/2-r*0.7, by+bh/2+r*0.7); ctx.stroke(); }
     });
     
-    ctx.textAlign="left"; ctx.font="bold 12px Arial"; let sX = 15; let sY = y + hB*304.8*scale + 40; let mW = canvas.width - 30; ctx.fillStyle = "#0f172a"; ctx.fillText("ASSET ID: ", sX, sY); let idLW = ctx.measureText("ASSET ID: ").width; 
+    ctx.textAlign="left"; ctx.font="bold 12px Arial"; let sX = 15; let sY = y + hB*304.8*scale + 40; let mW = canvas.width - 30; 
+    
+    // FIX 1: Changed label to TAG NO / S.NO
+    ctx.fillStyle = "#0f172a"; ctx.fillText("TAG NO / S.NO: ", sX, sY); let idLW = ctx.measureText("TAG NO / S.NO: ").width; 
     if(!d.tag) { ctx.fillStyle = "#ef4444"; ctx.fillText("PENDING", sX + idLW, sY); } else { ctx.fillStyle = "#4f46e5"; ctx.fillText(d.tag.toUpperCase(), sX + idLW, sY); }
     sY += 24; ctx.fillStyle = "#0f172a"; ctx.font="bold 11px Arial"; ctx.fillText("ENGINEERING SPECIFICATIONS:", sX, sY); sY += 16;
     
-    let calcTotal = "";
-    if (d.area && d.rate && !isNaN(d.area) && !isNaN(d.rate)) {
-        calcTotal = "₹ " + (parseFloat(d.area) * parseFloat(d.rate)).toFixed(2);
+    // FIX 2 & 3: Automatic math engine for Area and Total Amount
+    let qty = parseFloat(d.qty) || 1;
+    let computedArea = (wB * hB * qty).toFixed(2);
+    let rate = parseFloat(d.rate) || 0;
+    let computedAmount = "₹ " + (parseFloat(computedArea) * rate).toFixed(2);
+
+    // Sync back value to the read-only Area text box on input
+    if (isP) {
+        const uiAreaInput = document.getElementById("areaSpec");
+        if (uiAreaInput) uiAreaInput.value = computedArea;
     }
 
     let sps = [
         {l:"SERIES SYSTEM: ", v:d.series}, {l:"GLASS: ", v:d.glass}, 
         {l:"COLOR: ", v:d.color}, {l:"LOCK TYPE: ", v:d.lock}, 
         {l:"LOCK POSITION: ", v:d.lockPos}, {l:"MESH OPTION: ", v:d.mesh}, 
-        {l:"AREA (SQ.FT): ", v:d.area}, {l:"RATE / SQ.FT: ", v:d.rate},
-        {l:"TOTAL RATE: ", v:calcTotal} 
+        {l:"QUANTITY: ", v:qty},
+        {l:"AREA (SQ.FT): ", v:computedArea}, 
+        {l:"RATE / SQ.FT: ", v:d.rate ? "₹ " + d.rate : ""},
+        {l:"TOTAL AMOUNT: ", v:computedAmount} 
     ];
     sps.forEach(s => { sY = wrapSpecLine(ctx, s.l, s.v, sX, sY, mW, 15); });
     if(d.notes) { sY += 5; ctx.fillStyle = "#0f172a"; ctx.font="bold 11px Arial"; ctx.fillText("NOTES: ", sX, sY); sY += 15; ctx.font="11px Arial"; wrapText(ctx, d.notes, sX, sY, mW, 15); }
 }
 
+function drawPreview() { 
+    let d = { 
+        w: parseFloat(document.getElementById("w").value)||0, h: parseFloat(document.getElementById("h").value)||0, 
+        unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, 
+        glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, 
+        lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, 
+        series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), 
+        qty: document.getElementById("qtySpec") ? document.getElementById("qtySpec").value : 1,
+        rate: document.getElementById("rateSpec").value, 
+        mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), 
+        notes: document.getElementById("notes").value, boxes: currentBoxes 
+    }; 
+    drawIndividual(document.getElementById("previewCanvas"), d, true); 
+}
+
 function addOrUpdateWindow() { 
     if(currentBoxes.length===0) return alert("ENTER SIZE"); 
     let d = { 
-        w: parseFloat(document.getElementById("w").value), h: parseFloat(document.getElementById("h").value), unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: JSON.parse(JSON.stringify(currentBoxes)) 
+        w: parseFloat(document.getElementById("w").value), h: parseFloat(document.getElementById("h").value), unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, lock: document.getElementById("lockSpec").value, lockPos: document.getElementById("lockHSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), 
+        qty: document.getElementById("qtySpec") ? document.getElementById("qtySpec").value : 1,
+        area: document.getElementById("areaSpec").value, 
+        rate: document.getElementById("rateSpec").value, 
+        mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: JSON.parse(JSON.stringify(currentBoxes)) 
     }; 
     let idx = parseInt(document.getElementById("editIndex").value); 
     if(idx === -1) projectWindows.push(d); else projectWindows[idx] = d; 
@@ -392,42 +416,23 @@ function addOrUpdateWindow() {
 }
 
 function clearAll() { 
-    document.getElementById("w").value = ""; document.getElementById("h").value = ""; document.getElementById("winTag").value = ""; document.getElementById("notes").value = ""; document.getElementById("glassSpec").value = ""; document.getElementById("colorSpec").value = ""; document.getElementById("lockSpec").value = ""; document.getElementById("lockHSpec").value = "CENTRE"; document.getElementById("seriesSpec").value = ""; document.getElementById("seriesManual").value = ""; document.getElementById("seriesManual").classList.add("hidden"); document.getElementById("areaSpec").value = ""; document.getElementById("rateSpec").value = ""; document.getElementById("meshSpec").value = ""; document.getElementById("meshManual").value = ""; document.getElementById("meshManual").classList.add("hidden"); 
+    document.getElementById("w").value = ""; document.getElementById("h").value = ""; document.getElementById("winTag").value = ""; document.getElementById("notes").value = ""; document.getElementById("glassSpec").value = ""; document.getElementById("colorSpec").value = ""; document.getElementById("lockSpec").value = ""; document.getElementById("lockHSpec").value = "CENTRE"; document.getElementById("seriesSpec").value = ""; document.getElementById("seriesManual").value = ""; document.getElementById("seriesManual").classList.add("hidden"); 
+    document.getElementById("areaSpec").value = ""; document.getElementById("rateSpec").value = ""; 
+    if(document.getElementById("qtySpec")) document.getElementById("qtySpec").value = "1";
+    document.getElementById("meshSpec").value = ""; document.getElementById("meshManual").value = ""; document.getElementById("meshManual").classList.add("hidden"); 
     currentBoxes = []; historyStack = []; document.getElementById('partsManager').innerHTML = `<div class="empty-state"><div class="empty-icon">📏</div>Input dimensions to initialize structural grid</div>`; document.getElementById("editIndex").value = "-1"; drawPreview(); 
 }
 
-function renderProject() {
-    let hasW = projectWindows.length > 0;
-    document.getElementById("welcomePage").style.display = hasW ? "block" : "none"; 
-    document.getElementById("projectSheet").style.display = hasW ? "block" : "none"; 
-    document.getElementById("drawingsTable").style.display = hasW ? "table" : "none";
-    document.getElementById("printSite").innerText = (document.getElementById("siteLoc").value || "---").toUpperCase(); 
-    document.getElementById("printDate").innerText = document.getElementById("projDate").value || "---"; 
-    document.getElementById("printClientName").innerText = (document.getElementById("clientName").value || "---").toUpperCase();
-    document.getElementById("printWelcomeLetter").innerText = document.getElementById("welcomeText").value.toUpperCase(); 
-    document.getElementById("printDisclaimerText").innerText = document.getElementById("disclaimerText").value.toUpperCase();
-    let l = document.getElementById("windowList"); l.innerHTML = "";
-    projectWindows.forEach((win, i) => {
-        let div = document.createElement("div"); div.className = "drawing-container";
-        div.innerHTML = `<button class="copy-btn" onclick="copyWindow(${i})">COPY</button><button class="edit-btn-saved" onclick="editWindow(${i})">EDIT</button><button class="del-btn-saved" onclick="deleteSaved(${i})">X</button>`;
-        let cvs = document.createElement("canvas"); cvs.width = 346; cvs.height = 650; 
-        div.appendChild(cvs); l.appendChild(div); drawIndividual(cvs, win, false);
-    }); 
-}
-
-function deleteSaved(idx) { if(confirm("DELETE?")) { projectWindows.splice(idx,1); renderProject(); } }
-
-function assignSpecValues(d) {
-    let stdS = ["M PLUS 65", "M PLUS 16 SLIM", "M PRIME 55", "M PRIME 20 SLIM", "M PRO 50 TR", "M PRO 15 FB", ""]; 
-    if (stdS.includes(d.series)) { document.getElementById("seriesSpec").value = d.series; document.getElementById("seriesManual").classList.add("hidden"); } else { document.getElementById("seriesSpec").value = "MANUAL"; document.getElementById("seriesManual").value = d.series; document.getElementById("seriesManual").classList.remove("hidden"); } 
-    let stdM = ["PLEATED INSIDE", "PLEATED OUTSIDE", "REGULAR", "NO MESH", ""]; 
-    if (stdM.includes(d.mesh)) { document.getElementById("meshSpec").value = d.mesh; document.getElementById("meshManual").classList.add("hidden"); } else { document.getElementById("meshSpec").value = "MANUAL"; document.getElementById("meshManual").value = d.mesh; document.getElementById("meshManual").classList.remove("hidden"); }
-}
-
 function copyWindow(i) { 
-    let d = projectWindows[i]; document.getElementById("w").value = d.w; document.getElementById("h").value = d.h; document.getElementById("unit").value = d.unit; document.getElementById("winTag").value = d.tag + " (COPY)"; document.getElementById("glassSpec").value = d.glass || ""; document.getElementById("colorSpec").value = d.color || ""; document.getElementById("lockSpec").value = d.lock || ""; document.getElementById("lockHSpec").value = d.lockPos || "CENTRE"; assignSpecValues(d); document.getElementById("areaSpec").value = d.area || ""; document.getElementById("rateSpec").value = d.rate || ""; document.getElementById("notes").value = d.notes; currentBoxes = JSON.parse(JSON.stringify(d.boxes)); document.getElementById("editIndex").value = "-1"; renderPartsUI(); drawPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
+    let d = projectWindows[i]; document.getElementById("w").value = d.w; document.getElementById("h").value = d.h; document.getElementById("unit").value = d.unit; document.getElementById("winTag").value = d.tag + " (COPY)"; document.getElementById("glassSpec").value = d.glass || ""; document.getElementById("colorSpec").value = d.color || ""; document.getElementById("lockSpec").value = d.lock || ""; document.getElementById("lockHSpec").value = d.lockPos || "CENTRE"; assignSpecValues(d); 
+    document.getElementById("areaSpec").value = d.area || ""; document.getElementById("rateSpec").value = d.rate || ""; 
+    if(document.getElementById("qtySpec")) document.getElementById("qtySpec").value = d.qty || "1";
+    document.getElementById("notes").value = d.notes; currentBoxes = JSON.parse(JSON.stringify(d.boxes)); document.getElementById("editIndex").value = "-1"; renderPartsUI(); drawPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
 function editWindow(i) { 
-    let d = projectWindows[i]; document.getElementById("w").value = d.w; document.getElementById("h").value = d.h; document.getElementById("unit").value = d.unit; document.getElementById("winTag").value = d.tag; document.getElementById("glassSpec").value = d.glass || ""; document.getElementById("colorSpec").value = d.color || ""; document.getElementById("lockSpec").value = d.lock || ""; document.getElementById("lockHSpec").value = d.lockPos || "CENTRE"; assignSpecValues(d); document.getElementById("areaSpec").value = d.area || ""; document.getElementById("rateSpec").value = d.rate || ""; document.getElementById("notes").value = d.notes; currentBoxes = JSON.parse(JSON.stringify(d.boxes)); historyStack = []; document.getElementById("editIndex").value = i; renderPartsUI(); drawPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
+    let d = projectWindows[i]; document.getElementById("w").value = d.w; document.getElementById("h").value = d.h; document.getElementById("unit").value = d.unit; document.getElementById("winTag").value = d.tag; document.getElementById("glassSpec").value = d.glass || ""; document.getElementById("colorSpec").value = d.color || ""; document.getElementById("lockSpec").value = d.lock || ""; document.getElementById("lockHSpec").value = d.lockPos || "CENTRE"; assignSpecValues(d); 
+    document.getElementById("areaSpec").value = d.area || ""; document.getElementById("rateSpec").value = d.rate || ""; 
+    if(document.getElementById("qtySpec")) document.getElementById("qtySpec").value = d.qty || "1";
+    document.getElementById("notes").value = d.notes; currentBoxes = JSON.parse(JSON.stringify(d.boxes)); historyStack = []; document.getElementById("editIndex").value = i; renderPartsUI(); drawPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
 }
