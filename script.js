@@ -33,8 +33,9 @@ function toggleAuthMode(mode) {
         document.getElementById('toggleLoginText').style.display = 'block';
     } 
     else if (mode === 'reset') {
+        // ZERO-EMAIL FLOW: Instruct user to contact the Admin
         document.getElementById('authTitle').innerText = 'Reset Password';
-        document.getElementById('authSubtitle').innerHTML = 'Email services are disabled for this workspace.<br><br><span style="color: var(--brand-dark); font-weight: 600;">Please contact your System Administrator to obtain a new temporary password.</span>';
+        document.getElementById('authSubtitle').innerHTML = '<div style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 8px; margin-top: 10px; color: var(--text-main);">For security purposes, automated email resets are disabled.<br><br><b>Please contact your System Administrator to obtain a new temporary password.</b></div>';
         
         document.getElementById('signupFields').style.display = 'none';
         document.getElementById('passwordWrapper').style.display = 'none';
@@ -49,6 +50,7 @@ function toggleAuthMode(mode) {
         document.getElementById('toggleLoginText').style.display = 'block';
     } 
     else {
+        // Default Login Mode
         document.getElementById('authTitle').innerText = 'Welcome Back';
         document.getElementById('authSubtitle').innerHTML = 'Sign in to access your workspace';
         document.getElementById('signupFields').style.display = 'none';
@@ -145,17 +147,14 @@ async function handleLogout() {
     window.location.reload(); 
 }
 
+// Bypassed: Emails are off, no reset logic needed.
 async function handlePasswordReset() {
-    alert("Email services are disabled. Please contact the administrator.");
+    return;
 }
 
+// Bypassed: Handled securely via Supabase Admin Dashboard
 async function saveNewPassword() {
-    const newPassword = document.getElementById('newPasswordInput').value;
-    const msg = document.getElementById('updateMsg');
-    if (!newPassword || newPassword.length < 6) { msg.innerText = "Password must be at least 6 characters."; return; }
-    msg.style.color = "var(--text-muted)"; msg.innerText = "Saving...";
-    const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
-    if (error) { msg.style.color = "var(--danger)"; msg.innerText = error.message; } else { alert("Password updated successfully! Please log in with your new password."); window.location.reload(); }
+    return;
 }
 
 
@@ -283,7 +282,6 @@ function handleLogoUpload(event) {
     reader.readAsDataURL(event.target.files[0]);
 }
 
-// Converts ANY unit (inch, mm, ft) explicitly into FEET.
 function toBase(v, uO) { let u = uO || document.getElementById('unit').value; return u === "inch" ? v / 12 : (u === "mm" ? v / 304.8 : v); }
 function fromBase(v, uO) { let u = uO || document.getElementById('unit').value; return u === "inch" ? v * 12 : (u === "mm" ? v * 304.8 : v); }
 
@@ -354,7 +352,6 @@ function drawIndividual(canvas, d, isP) {
     var ctx = canvas.getContext("2d"); ctx.fillStyle = "white"; ctx.fillRect(0,0, canvas.width, canvas.height); 
     if(d.w <= 0 || d.h <= 0 || d.boxes.length === 0) return;
     
-    // Convert visually requested sizes strictly into feet
     let wB = toBase(d.w, d.unit); let hB = toBase(d.h, d.unit); var scale = Math.min((canvas.width-80)/(wB*304.8), (canvas.height/2-80)/(hB*304.8)); var x = 40, y = 80; 
     ctx.strokeStyle = "#0f172a"; ctx.lineWidth = 1.5; ctx.fillStyle = "#0f172a"; ctx.font = "bold 11px Arial"; ctx.textAlign = "center"; let uL = (d.unit==="feet"?" FT":(d.unit==="inch"?"\"":" MM"));
     
@@ -372,8 +369,7 @@ function drawIndividual(canvas, d, isP) {
         if (b.type === 'door') { ctx.setLineDash([5, 5]); ctx.beginPath(); if(b.doorType === 'double') { let gap = 10; let pW = (bw - gap) / 2; ctx.moveTo(bx, by); ctx.lineTo(bx+pW, by+bh/2); ctx.lineTo(bx, by+bh); ctx.moveTo(bx+bw, by); ctx.lineTo(bx+bw-pW, by+bh/2); ctx.lineTo(bx+bw, by+bh); } else if(b.doorType === '1L') { ctx.moveTo(bx, by); ctx.lineTo(bx+bw, by+bh/2); ctx.lineTo(bx, by+bh); } else if(b.doorType === '1R') { ctx.moveTo(bx+bw, by); ctx.lineTo(bx, by+bh/2); ctx.lineTo(bx+bw, by+bh); } else if(b.doorType === 'tophung') { ctx.moveTo(bx, by); ctx.lineTo(bx+bw/2, by+bh); ctx.lineTo(bx+bw, by); } ctx.stroke(); ctx.setLineDash([]); } else if (b.type === 'fan') { let r = Math.min(bw, bh)*0.3; ctx.beginPath(); ctx.arc(bx+bw/2, by+bh/2, r, 0, 2*Math.PI); ctx.stroke(); ctx.moveTo(bx+bw/2-r*0.7, by+bh/2-r*0.7); ctx.lineTo(bx+bw/2+r*0.7, by+bh/2+r*0.7); ctx.moveTo(bx+bw/2+r*0.7, by+bh/2-r*0.7); ctx.lineTo(bx+bw/2-r*0.7, by+bh/2+r*0.7); ctx.stroke(); }
     });
     
-    // --- FIX: AREA & AMOUNT MATH ---
-    // Uses the correctly converted 'wB' and 'hB' (which are in FEET) so math is always strictly Sq.Ft.
+    // --- AREA & AMOUNT MATH ---
     let qty = parseFloat(d.qty) || parseFloat(document.getElementById("qtySpec").value) || 1;
     let area = (wB * hB * qty).toFixed(2);
     let rate = parseFloat(d.rate) || 0;
