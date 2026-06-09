@@ -16,36 +16,21 @@
             .panel-header { flex-direction: column; gap: 15px; text-align: center; }
             .panel-header > div { justify-content: center; width: 100%; }
             
-            /* Force table to behave like blocks */
             table, thead, tbody, th, td, tr { display: block; width: 100%; box-sizing: border-box; }
-            thead tr { position: absolute; top: -9999px; left: -9999px; } /* Hide headers */
+            thead tr { position: absolute; top: -9999px; left: -9999px; } 
             
             tr { border: 1px solid var(--border-color) !important; margin-bottom: 20px; border-radius: 8px; background: #fff; padding: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
             
             td { 
-                border: none; 
-                border-bottom: 1px solid #f1f5f9; 
-                position: relative; 
-                padding: 12px 10px 12px 40% !important; 
-                text-align: right !important; 
-                font-size: 13px;
-                min-height: 40px;
+                border: none; border-bottom: 1px solid #f1f5f9; position: relative; 
+                padding: 12px 10px 12px 40% !important; text-align: right !important; font-size: 13px; min-height: 40px;
             }
             td:last-child { border-bottom: none; }
             
-            /* Add pseudo-headers back in */
             td:before { 
-                position: absolute; 
-                top: 12px; 
-                left: 10px; 
-                width: 35%; 
-                padding-right: 10px; 
-                white-space: nowrap; 
-                font-weight: 600; 
-                text-align: left; 
-                color: var(--text-muted); 
-                font-size: 11px; 
-                text-transform: uppercase;
+                position: absolute; top: 12px; left: 10px; width: 35%; padding-right: 10px; 
+                white-space: nowrap; font-weight: 600; text-align: left; color: var(--text-muted); 
+                font-size: 11px; text-transform: uppercase;
             }
             
             td:nth-of-type(1):before { content: "User Info"; }
@@ -88,6 +73,11 @@
             </div>
             
             <div class="panel-body" style="padding: 20px; overflow: visible;">
+                
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="searchInput" placeholder="🔍 Search users by name, email, phone, or status..." style="width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-sizing: border-box; font-family: inherit; font-size: 14px; background: #f8fafc; transition: all 0.2s;">
+                </div>
+
                 <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
                     <thead>
                         <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted);">

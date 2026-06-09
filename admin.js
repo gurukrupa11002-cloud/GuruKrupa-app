@@ -5,7 +5,28 @@ const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 document.addEventListener("DOMContentLoaded", () => {
     checkAdminAccess();
+    setupSearch(); // Initialize the search bar listener
 });
+
+// --- NEW: Live Search Filter ---
+function setupSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if(searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#userTableBody tr');
+            
+            rows.forEach(row => {
+                const textContent = row.innerText.toLowerCase();
+                if (textContent.includes(searchTerm)) {
+                    row.style.display = ''; // Show row
+                } else {
+                    row.style.display = 'none'; // Hide row
+                }
+            });
+        });
+    }
+}
 
 async function handleAdminLogin() {
     const email = document.getElementById('adminEmail').value;
@@ -78,10 +99,12 @@ async function loadUsers() {
             : `<span style="background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 11px;">PENDING</span>`;
 
         let actionBtn = user.payment_status === 'pending'
-            ? `<button class="btn btn-micro" style="background: var(--accent-primary); color: white; border: none;" onclick="updateStatus('${user.id}', 'cleared')">✅ Clear Payment</button>`
-            : `<button class="btn btn-micro" onclick="updateStatus('${user.id}', 'pending')">🔒 Revoke Access</button>`;
+            ? `<button class="btn btn-micro" style="background: var(--accent-primary); color: white; border: none; margin-right: 5px;" onclick="updateStatus('${user.id}', 'cleared')">✅ Clear Payment</button>`
+            : `<button class="btn btn-micro" style="margin-right: 5px;" onclick="updateStatus('${user.id}', 'pending')">🔒 Revoke Access</button>`;
 
-        // New layout showing User Info + Contact Details
+        // NEW: Delete Button
+        let deleteBtn = `<button class="btn btn-micro btn-micro-danger" onclick="deleteUserProfile('${user.id}')">🗑️ Delete</button>`;
+
         tr.innerHTML = `
             <td style="padding: 12px;">
                 <span style="font-weight: 600; color: var(--brand-dark);">${user.full_name || 'N/A'}</span><br>
@@ -93,7 +116,11 @@ async function loadUsers() {
             </td>
             <td style="padding: 12px; color: var(--text-muted);">${user.role}</td>
             <td style="padding: 12px;">${statusBadge}</td>
-            <td style="padding: 12px;">${user.role === 'admin' ? '<span style="color: #cbd5e1;">Admin Account</span>' : actionBtn}</td>
+            <td style="padding: 12px;">
+                <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                    ${user.role === 'admin' ? '<span style="color: #cbd5e1;">Admin Account</span>' : actionBtn + deleteBtn}
+                </div>
+            </td>
         `;
         tbody.appendChild(tr);
     });
@@ -109,6 +136,23 @@ async function updateStatus(userId, newStatus) {
         loadUsers(); 
     } else {
         alert("Error updating status: " + error.message);
+    }
+}
+
+// --- NEW: Delete Profile Function ---
+async function deleteUserProfile(userId) {
+    if(confirm("⚠️ Are you sure you want to delete this user's profile data? This will permanently remove them from this list.")) {
+        const { error } = await supabaseClient
+            .from('profiles')
+            .delete()
+            .eq('id', userId);
+
+        if (error) {
+            alert("Error deleting profile: " + error.message);
+        } else {
+            alert("User profile deleted successfully.\n\nNote: To completely erase their login capabilities, delete their email from the Authentication tab in your Supabase Dashboard.");
+            loadUsers(); // Refresh the table
+        }
     }
 }
 
