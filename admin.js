@@ -187,6 +187,18 @@ async function loadSettings() {
     const { data } = await supabaseClient.from('app_settings').select('*').eq('id', 1).single();
     if (data) {
         document.getElementById('settingCompanyName').value = data.company_name;
+        
+        // Update the Top Navigation Bar Logo in Admin Panel
+        if(data.logo_data) {
+            const adminTopIcon = document.querySelector('.panel-header .brand-icon');
+            if (adminTopIcon) {
+                adminTopIcon.innerHTML = `<img src="${data.logo_data}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                adminTopIcon.style.background = 'transparent';
+                adminTopIcon.style.padding = '0';
+                adminTopIcon.style.width = '30px';
+                adminTopIcon.style.height = '30px';
+            }
+        }
     }
 }
 

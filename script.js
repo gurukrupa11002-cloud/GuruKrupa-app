@@ -32,11 +32,33 @@ async function loadBranding() {
 
         // Apply Global Logo if one exists
         if(data.logo_data) {
-            currentLogoData = data.logo_data; // Sets it globally for canvas/pdf
+            currentLogoData = data.logo_data; 
+            
+            // 1. Update the PDF Generation Logos
             const wl = document.getElementById('welcomeLogo');
             const hl = document.getElementById('headerLogo');
             if(wl) { wl.src = data.logo_data; wl.style.display = 'block'; }
             if(hl) { hl.src = data.logo_data; hl.style.display = 'block'; }
+
+            // 2. Update the Top Navigation Bar Logo
+            const topBarIcon = document.querySelector('.top-bar .brand-icon');
+            if (topBarIcon) {
+                topBarIcon.innerHTML = `<img src="${data.logo_data}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                topBarIcon.style.background = 'transparent';
+                topBarIcon.style.padding = '0';
+                topBarIcon.style.width = '35px';
+                topBarIcon.style.height = '35px';
+            }
+
+            // 3. Update the Login Screen Logo
+            const loginIcon = document.querySelector('.brand-icon-large');
+            if (loginIcon) {
+                loginIcon.innerHTML = `<img src="${data.logo_data}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                loginIcon.style.background = 'transparent';
+                loginIcon.style.padding = '0';
+                loginIcon.style.width = '80px';
+                loginIcon.style.height = '80px';
+            }
         }
     }
 }
