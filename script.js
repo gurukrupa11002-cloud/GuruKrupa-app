@@ -5,42 +5,44 @@ const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 let currentCloudProjectId = null; 
 
+// --- SAFE DOM HELPERS (Prevents Crashes) ---
+const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : "";
+const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val; };
+const setDisplay = (id, val) => { if(document.getElementById(id)) document.getElementById(id).style.display = val; };
+const setText = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
+
 // --- Authentication & Initialization Logic ---
 document.addEventListener("DOMContentLoaded", () => {
-    document.querySelector('.app-container').style.display = 'none';
-    loadBranding(); // Fetch custom name/logo
+    const appContainer = document.querySelector('.app-container');
+    if (appContainer) appContainer.style.display = 'none';
+    loadBranding(); 
     checkSession();
 });
 
-// --- NEW: Fetch and Apply Global Branding ---
+// --- Fetch and Apply Global Branding ---
 async function loadBranding() {
     const { data, error } = await supabaseClient.from('app_settings').select('*').eq('id', 1).single();
     
     if (data && !error) {
         const name = data.company_name;
         
-        // Update Text Elements
         if(document.getElementById('pageTitle')) document.getElementById('pageTitle').innerText = `${name} - Premium Engineering Studio`;
         if(document.getElementById('heroBrandName')) document.getElementById('heroBrandName').innerText = name;
         if(document.getElementById('navBrandName')) document.getElementById('navBrandName').innerText = name;
         
-        // Update default welcome text to use the new name
         const welcomeEl = document.getElementById('welcomeText');
         if(welcomeEl && welcomeEl.value.includes('SMG Infosolutions')) {
             welcomeEl.value = welcomeEl.value.replace(/SMG Infosolutions/g, name);
         }
 
-        // Apply Global Logo if one exists
         if(data.logo_data) {
             currentLogoData = data.logo_data; 
             
-            // 1. Update the PDF Generation Logos
             const wl = document.getElementById('welcomeLogo');
             const hl = document.getElementById('headerLogo');
             if(wl) { wl.src = data.logo_data; wl.style.display = 'block'; }
             if(hl) { hl.src = data.logo_data; hl.style.display = 'block'; }
 
-            // 2. Update the Top Navigation Bar Logo
             const topBarIcon = document.querySelector('.top-bar .brand-icon');
             if (topBarIcon) {
                 topBarIcon.innerHTML = `<img src="${data.logo_data}" style="width: 100%; height: 100%; object-fit: contain;">`;
@@ -50,7 +52,6 @@ async function loadBranding() {
                 topBarIcon.style.height = '35px';
             }
 
-            // 3. Update the Login Screen Logo
             const loginIcon = document.querySelector('.brand-icon-large');
             if (loginIcon) {
                 loginIcon.innerHTML = `<img src="${data.logo_data}" style="width: 100%; height: 100%; object-fit: contain;">`;
@@ -65,55 +66,55 @@ async function loadBranding() {
 
 function toggleAuthMode(mode) {
     const msg = document.getElementById('authMessage');
-    msg.innerText = ""; 
+    if(msg) msg.innerText = ""; 
     
     const emailInput = document.getElementById('emailInput');
 
     if (mode === 'signup') {
-        document.getElementById('authTitle').innerText = 'Create Account';
-        document.getElementById('authSubtitle').innerHTML = 'Enter your details to register';
-        document.getElementById('signupFields').style.display = 'block';
-        document.getElementById('passwordWrapper').style.display = 'block';
-        emailInput.style.display = 'block';
+        setText('authTitle', 'Create Account');
+        if(document.getElementById('authSubtitle')) document.getElementById('authSubtitle').innerHTML = 'Enter your details to register';
+        setDisplay('signupFields', 'block');
+        setDisplay('passwordWrapper', 'block');
+        if(emailInput) emailInput.style.display = 'block';
         
-        document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('resetBtn').style.display = 'none';
-        document.getElementById('signupBtn').style.display = 'block';
+        setDisplay('loginBtn', 'none');
+        setDisplay('resetBtn', 'none');
+        setDisplay('signupBtn', 'block');
         
-        document.getElementById('toggleSignUpText').style.display = 'none';
-        document.getElementById('toggleForgotText').style.display = 'none';
-        document.getElementById('toggleLoginText').style.display = 'block';
+        setDisplay('toggleSignUpText', 'none');
+        setDisplay('toggleForgotText', 'none');
+        setDisplay('toggleLoginText', 'block');
     } 
     else if (mode === 'reset') {
-        document.getElementById('authTitle').innerText = 'Reset Password';
-        document.getElementById('authSubtitle').innerHTML = 'Email services are disabled for this workspace.<br><br><span style="color: var(--brand-dark); font-weight: 600;">Please contact your System Administrator to obtain a new temporary password.</span>';
+        setText('authTitle', 'Reset Password');
+        if(document.getElementById('authSubtitle')) document.getElementById('authSubtitle').innerHTML = 'Email services are disabled for this workspace.<br><br><span style="color: var(--brand-dark); font-weight: 600;">Please contact your System Administrator to obtain a new temporary password.</span>';
         
-        document.getElementById('signupFields').style.display = 'none';
-        document.getElementById('passwordWrapper').style.display = 'none';
-        emailInput.style.display = 'none'; 
+        setDisplay('signupFields', 'none');
+        setDisplay('passwordWrapper', 'none');
+        if(emailInput) emailInput.style.display = 'none'; 
         
-        document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('signupBtn').style.display = 'none';
-        document.getElementById('resetBtn').style.display = 'none'; 
+        setDisplay('loginBtn', 'none');
+        setDisplay('signupBtn', 'none');
+        setDisplay('resetBtn', 'none'); 
         
-        document.getElementById('toggleForgotText').style.display = 'none';
-        document.getElementById('toggleSignUpText').style.display = 'none';
-        document.getElementById('toggleLoginText').style.display = 'block';
+        setDisplay('toggleForgotText', 'none');
+        setDisplay('toggleSignUpText', 'none');
+        setDisplay('toggleLoginText', 'block');
     } 
     else {
-        document.getElementById('authTitle').innerText = 'Welcome Back';
-        document.getElementById('authSubtitle').innerHTML = 'Sign in to access your workspace';
-        document.getElementById('signupFields').style.display = 'none';
-        document.getElementById('passwordWrapper').style.display = 'block';
-        emailInput.style.display = 'block';
+        setText('authTitle', 'Welcome Back');
+        if(document.getElementById('authSubtitle')) document.getElementById('authSubtitle').innerHTML = 'Sign in to access your workspace';
+        setDisplay('signupFields', 'none');
+        setDisplay('passwordWrapper', 'block');
+        if(emailInput) emailInput.style.display = 'block';
         
-        document.getElementById('resetBtn').style.display = 'none';
-        document.getElementById('signupBtn').style.display = 'none';
-        document.getElementById('loginBtn').style.display = 'block';
+        setDisplay('resetBtn', 'none');
+        setDisplay('signupBtn', 'none');
+        setDisplay('loginBtn', 'block');
         
-        document.getElementById('toggleLoginText').style.display = 'none';
-        document.getElementById('toggleForgotText').style.display = 'block';
-        document.getElementById('toggleSignUpText').style.display = 'block';
+        setDisplay('toggleLoginText', 'none');
+        setDisplay('toggleForgotText', 'block');
+        setDisplay('toggleSignUpText', 'block');
     }
 }
 
@@ -121,7 +122,7 @@ async function checkSession() {
     const { data: { session }, error } = await supabaseClient.auth.getSession();
     
     if (session) {
-        document.getElementById('authScreen').style.display = 'none';
+        setDisplay('authScreen', 'none');
         
         const { data: profile } = await supabaseClient
             .from('profiles')
@@ -131,7 +132,6 @@ async function checkSession() {
 
         if (profile && profile.payment_status === 'cleared') {
             
-            // --- Due Date Expiry Logic ---
             let today = new Date();
             today.setHours(0, 0, 0, 0); 
             
@@ -139,22 +139,19 @@ async function checkSession() {
             
             if (endDate) {
                 endDate.setHours(0, 0, 0, 0);
-                
-                // 1. Check for lockout (Expired)
                 if (today > endDate) {
-                    document.querySelector('.app-container').style.display = 'none';
-                    document.getElementById('paymentScreen').style.display = 'flex';
-                    
+                    const appCont = document.querySelector('.app-container');
+                    if(appCont) appCont.style.display = 'none';
+                    setDisplay('paymentScreen', 'flex');
                     await supabaseClient.from('profiles').update({ payment_status: 'pending' }).eq('id', session.user.id);
                     return; 
                 }
             }
 
-            // Access Granted
-            document.getElementById('paymentScreen').style.display = 'none';
-            document.querySelector('.app-container').style.display = 'flex';
+            setDisplay('paymentScreen', 'none');
+            const appCont = document.querySelector('.app-container');
+            if(appCont) appCont.style.display = 'flex';
             
-            // 2. Check for Warning Banner (Expires in 7 days or less)
             if (endDate) {
                 let diffTime = endDate - today;
                 let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -168,13 +165,15 @@ async function checkSession() {
             }
 
         } else {
-            document.querySelector('.app-container').style.display = 'none';
-            document.getElementById('paymentScreen').style.display = 'flex';
+            const appCont = document.querySelector('.app-container');
+            if(appCont) appCont.style.display = 'none';
+            setDisplay('paymentScreen', 'flex');
         }
     } else {
-        document.getElementById('authScreen').style.display = 'flex';
-        document.getElementById('paymentScreen').style.display = 'none';
-        document.querySelector('.app-container').style.display = 'none';
+        setDisplay('authScreen', 'flex');
+        setDisplay('paymentScreen', 'none');
+        const appCont = document.querySelector('.app-container');
+        if(appCont) appCont.style.display = 'none';
     }
 }
 
@@ -187,65 +186,49 @@ function showExpiryWarning(daysLeft, dateStr) {
         document.body.insertBefore(banner, document.body.firstChild);
         existingBanner = banner;
     }
-    
     let timeText = daysLeft === 0 ? "TODAY" : `in ${daysLeft} days`;
     existingBanner.innerHTML = `⚠️ <strong>Action Required:</strong> Your subscription expires ${timeText} (${dateStr}). Please arrange payment to avoid service interruption.`;
 }
 
 async function handleSignUp() {
-    const email = document.getElementById('emailInput').value;
-    const password = document.getElementById('passwordInput').value;
-    const name = document.getElementById('regName').value;
-    const phone = document.getElementById('regPhone').value;
-    const address = document.getElementById('regAddress').value;
+    const email = getVal('emailInput');
+    const password = getVal('passwordInput');
+    const name = getVal('regName');
+    const phone = getVal('regPhone');
+    const address = getVal('regAddress');
     const msg = document.getElementById('authMessage');
     
     if(!email || !password || !name || !phone || !address) {
-        msg.style.color = "var(--danger)"; 
-        msg.innerText = "Please fill in all fields to create your account.";
+        if(msg) { msg.style.color = "var(--danger)"; msg.innerText = "Please fill in all fields."; }
         return;
     }
     
-    msg.style.color = "var(--text-muted)"; 
-    msg.innerText = "Creating account...";
+    if(msg) { msg.style.color = "var(--text-muted)"; msg.innerText = "Creating account..."; }
     
     const { data, error } = await supabaseClient.auth.signUp({ email, password });
     
     if (error) { 
-        msg.style.color = "var(--danger)"; 
-        msg.innerText = error.message; 
+        if(msg) { msg.style.color = "var(--danger)"; msg.innerText = error.message; }
     } else { 
         if(data.user) {
-            const { error: profileError } = await supabaseClient.from('profiles').upsert({
-                id: data.user.id,
-                email: email,
-                full_name: name,
-                phone: phone,
-                address: address,
-                role: 'client',
-                payment_status: 'pending'
+            await supabaseClient.from('profiles').upsert({
+                id: data.user.id, email: email, full_name: name, phone: phone, address: address, role: 'client', payment_status: 'pending'
             });
-
-            if (profileError) {
-                console.error("Could not save profile details:", profileError);
-            }
         }
-        
-        msg.style.color = "var(--accent-primary)"; 
-        msg.innerText = "Account created! You can now log in."; 
+        if(msg) { msg.style.color = "var(--accent-primary)"; msg.innerText = "Account created! You can now log in."; }
         toggleAuthMode('login'); 
     }
 }
 
 async function handleLogin() {
-    const email = document.getElementById('emailInput').value;
-    const password = document.getElementById('passwordInput').value;
+    const email = getVal('emailInput');
+    const password = getVal('passwordInput');
     const msg = document.getElementById('authMessage');
-    msg.style.color = "var(--text-muted)"; msg.innerText = "Logging in...";
+    if(msg) { msg.style.color = "var(--text-muted)"; msg.innerText = "Logging in..."; }
 
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if (error) { msg.style.color = "var(--danger)"; msg.innerText = error.message; } 
-    else { msg.innerText = ""; checkSession(); }
+    if (error) { if(msg) { msg.style.color = "var(--danger)"; msg.innerText = error.message; } } 
+    else { if(msg) msg.innerText = ""; checkSession(); }
 }
 
 async function handleLogout() {
@@ -258,12 +241,12 @@ async function handlePasswordReset() {
 }
 
 async function saveNewPassword() {
-    const newPassword = document.getElementById('newPasswordInput').value;
+    const newPassword = getVal('newPasswordInput');
     const msg = document.getElementById('updateMsg');
-    if (!newPassword || newPassword.length < 6) { msg.innerText = "Password must be at least 6 characters."; return; }
-    msg.style.color = "var(--text-muted)"; msg.innerText = "Saving...";
+    if (!newPassword || newPassword.length < 6) { if(msg) msg.innerText = "Password must be at least 6 characters."; return; }
+    if(msg) { msg.style.color = "var(--text-muted)"; msg.innerText = "Saving..."; }
     const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
-    if (error) { msg.style.color = "var(--danger)"; msg.innerText = error.message; } else { alert("Password updated successfully! Please log in with your new password."); window.location.reload(); }
+    if (error) { if(msg) { msg.style.color = "var(--danger)"; msg.innerText = error.message; } } else { alert("Password updated successfully!"); window.location.reload(); }
 }
 
 // --- CLOUD SYNCHRONIZATION LOGIC ---
@@ -271,22 +254,19 @@ async function saveProjectToCloud() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return alert("You must be logged in to save.");
 
-    const clientName = document.getElementById("clientName").value || "Untitled Client";
-    const siteLoc = document.getElementById("siteLoc").value;
-    
     const payload = {
         user_id: session.user.id,
-        client_name: clientName,
-        site_location: siteLoc,
-        project_date: document.getElementById("projDate").value,
-        welcome_text: document.getElementById("welcomeText").value,
-        disclaimer_text: document.getElementById("disclaimerText").value,
+        client_name: getVal("clientName") || "Untitled Client",
+        site_location: getVal("siteLoc"),
+        project_date: getVal("projDate"),
+        welcome_text: getVal("welcomeText"),
+        disclaimer_text: getVal("disclaimerText"),
         windows_data: projectWindows 
     };
 
     const btn = document.querySelector('.global-actions button:first-child');
-    const originalText = btn.innerText;
-    btn.innerText = "☁️ Saving...";
+    let originalText = "☁️ Save to Cloud";
+    if(btn) { originalText = btn.innerText; btn.innerText = "☁️ Saving..."; }
 
     let errorObj = null;
 
@@ -302,8 +282,7 @@ async function saveProjectToCloud() {
     if (errorObj) {
         alert("Failed to save to cloud: " + errorObj.message);
     } else {
-        btn.innerText = "✅ Saved!";
-        setTimeout(() => btn.innerText = originalText, 2000);
+        if(btn) { btn.innerText = "✅ Saved!"; setTimeout(() => btn.innerText = originalText, 2000); }
     }
 }
 
@@ -311,9 +290,9 @@ async function openCloudBrowser() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) return;
 
-    document.getElementById('cloudBrowser').style.display = 'flex';
+    setDisplay('cloudBrowser', 'flex');
     const list = document.getElementById('cloudProjectList');
-    list.innerHTML = "<p style='text-align:center;'>Fetching your projects...</p>";
+    if(list) list.innerHTML = "<p style='text-align:center;'>Fetching your projects...</p>";
 
     const { data: projects, error } = await supabaseClient
         .from('quotations')
@@ -321,6 +300,7 @@ async function openCloudBrowser() {
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
 
+    if(!list) return;
     if (error) { list.innerHTML = `<p style='color:red;'>Error loading projects: ${error.message}</p>`; return; }
     if (projects.length === 0) { list.innerHTML = "<p style='text-align:center;'>No projects found in the cloud.</p>"; return; }
 
@@ -341,21 +321,22 @@ async function openCloudBrowser() {
 }
 
 async function loadSpecificProject(projectId) {
-    document.getElementById('cloudProjectList').innerHTML = "<p style='text-align:center;'>Downloading project data...</p>";
+    const list = document.getElementById('cloudProjectList');
+    if(list) list.innerHTML = "<p style='text-align:center;'>Downloading project data...</p>";
     
     const { data, error } = await supabaseClient.from('quotations').select('*').eq('id', projectId).single();
     if (error) { alert("Error loading project: " + error.message); return; }
 
     currentCloudProjectId = data.id;
-    document.getElementById("clientName").value = data.client_name || "";
-    document.getElementById("siteLoc").value = data.site_location || "";
-    document.getElementById("projDate").value = data.project_date || "";
-    document.getElementById("welcomeText").value = data.welcome_text || "";
-    document.getElementById("disclaimerText").value = data.disclaimer_text || "";
+    setVal("clientName", data.client_name || "");
+    setVal("siteLoc", data.site_location || "");
+    setVal("projDate", data.project_date || "");
+    setVal("welcomeText", data.welcome_text || "");
+    setVal("disclaimerText", data.disclaimer_text || "");
     
     projectWindows = data.windows_data || [];
     renderProject();
-    document.getElementById('cloudBrowser').style.display = 'none';
+    setDisplay('cloudBrowser', 'none');
 }
 
 function createNewProject() { 
@@ -363,38 +344,37 @@ function createNewProject() {
         currentCloudProjectId = null;
         projectWindows = [];
         clearAll();
-        document.getElementById("clientName").value = "";
-        document.getElementById("siteLoc").value = "";
+        setVal("clientName", "");
+        setVal("siteLoc", "");
         renderProject();
     } 
 }
-
 
 // --- Quotation Maker Core Logic ---
 let projectWindows = []; let currentBoxes = []; let historyStack = []; let currentLogoData = "logo.png";
 function saveHistory() { historyStack.push(JSON.stringify(currentBoxes)); if (historyStack.length > 50) historyStack.shift(); }
 function undoAction() { if (historyStack.length > 0) { currentBoxes = JSON.parse(historyStack.pop()); renderPartsUI(); drawPreview(); } }
-function handleManualSeries(v) { document.getElementById('seriesManual').classList.toggle('hidden', v !== "MANUAL"); drawPreview(); }
-function handleManualMesh(v) { document.getElementById('meshManual').classList.toggle('hidden', v !== "MANUAL"); drawPreview(); }
+function handleManualSeries(v) { const el = document.getElementById('seriesManual'); if(el) el.classList.toggle('hidden', v !== "MANUAL"); drawPreview(); }
+function handleManualMesh(v) { const el = document.getElementById('meshManual'); if(el) el.classList.toggle('hidden', v !== "MANUAL"); drawPreview(); }
 
 function handleLogoUpload(event) {
     let reader = new FileReader();
     reader.onload = function(e) { 
         currentLogoData = e.target.result; 
-        document.getElementById('welcomeLogo').src = currentLogoData; 
-        document.getElementById('headerLogo').src = currentLogoData; 
-        document.getElementById('welcomeLogo').style.display = 'block'; 
-        document.getElementById('headerLogo').style.display = 'block'; 
+        const wl = document.getElementById('welcomeLogo');
+        const hl = document.getElementById('headerLogo');
+        if(wl) { wl.src = currentLogoData; wl.style.display = 'block'; }
+        if(hl) { hl.src = currentLogoData; hl.style.display = 'block'; }
         renderProject(); 
     }
-    reader.readAsDataURL(event.target.files[0]);
+    if(event.target.files.length > 0) reader.readAsDataURL(event.target.files[0]);
 }
 
-function toBase(v, uO) { let u = uO || document.getElementById('unit').value; return u === "inch" ? v / 12 : (u === "mm" ? v / 304.8 : v); }
-function fromBase(v, uO) { let u = uO || document.getElementById('unit').value; return u === "inch" ? v * 12 : (u === "mm" ? v * 304.8 : v); }
+function toBase(v, uO) { let u = uO || getVal('unit') || "feet"; return u === "inch" ? v / 12 : (u === "mm" ? v / 304.8 : v); }
+function fromBase(v, uO) { let u = uO || getVal('unit') || "feet"; return u === "inch" ? v * 12 : (u === "mm" ? v * 304.8 : v); }
 
 function initBase() {
-    let wR = parseFloat(document.getElementById('w').value) || 0; let hR = parseFloat(document.getElementById('h').value) || 0;
+    let wR = parseFloat(getVal('w')) || 0; let hR = parseFloat(getVal('h')) || 0;
     let w = toBase(wR); let h = toBase(hR);
     if (w > 0 && h > 0) {
         if (currentBoxes.length === 0) { currentBoxes = [{ id: Date.now(), x: 0, y: 0, w: w, h: h, type: 'sliding', p: 1, gBars: [{h:0, v:0}], doorType: '1L' }]; } 
@@ -413,10 +393,11 @@ function renderPartsUI() {
         if (b.type === 'door') { extraSettings = `<label style="margin:0;">Open:</label> <select onchange="updatePart(${i}, 'doorType', this.value)"><option value="1L" ${b.doorType==='1L'?'selected':''}>1 Left</option><option value="1R" ${b.doorType==='1R'?'selected':''}>1 Right</option><option value="double" ${b.doorType==='double'?'selected':''}>Double Door</option><option value="tophung" ${b.doorType==='tophung'?'selected':''}>Top Hung</option></select>`; } else if (b.type !== 'fan') { extraSettings = `<label style="margin:0;">Panels:</label> <input type="number" value="${b.p}" onchange="updatePart(${i}, 'p', this.value)"><button class="btn btn-micro" onclick="toggleGBar(${i})">Design Grid ⚙️</button>`; }
         html += `<div class="part-card"><div class="part-header"><span>Part ${i+1}</span><span style="color:var(--text-muted); font-weight:500;">${fromBase(b.w).toFixed(2)} x ${fromBase(b.h).toFixed(2)}</span></div><div class="part-controls"><div class="part-actions"><button class="btn btn-micro" onclick="splitH(${i})">✂️ Split Horiz</button><button class="btn btn-micro" onclick="splitV(${i})">✂️ Split Vert</button><button class="btn btn-micro" onclick="editPart(${i})">📐 Edit Dims</button><button class="btn btn-micro btn-micro-danger" onclick="deletePart(${i})">🗑️ Delete</button></div><div class="part-settings"><label style="margin:0;">Type:</label> ${typeSelect} ${extraSettings}</div><div id="gbar_${i}" class="gbar-container"><div style="font-weight:600; margin-bottom:10px; display:flex; justify-content:space-between; font-size:12px;">Internal Grid Design<button class="btn btn-micro" onclick="applyGToAll(${i})">Sync All Panels</button></div>${gBarsHtml}</div></div></div>`;
     });
-    document.getElementById('partsManager').innerHTML = html || `<div class="empty-state"><div class="empty-icon">📏</div>Input dimensions to initialize structural grid</div>`;
+    const pm = document.getElementById('partsManager');
+    if(pm) pm.innerHTML = html || `<div class="empty-state"><div class="empty-icon">📏</div>Input dimensions to initialize structural grid</div>`;
 }
 
-function toggleGBar(idx) { let el = document.getElementById('gbar_'+idx); el.style.display = (el.style.display === 'block') ? 'none' : 'block'; }
+function toggleGBar(idx) { let el = document.getElementById('gbar_'+idx); if(el) el.style.display = (el.style.display === 'block') ? 'none' : 'block'; }
 function updateGBar(pIdx, gIdx, field, val) { saveHistory(); if(!currentBoxes[pIdx].gBars[gIdx]) currentBoxes[pIdx].gBars[gIdx] = {h:0, v:0}; currentBoxes[pIdx].gBars[gIdx][field] = parseInt(val) || 0; drawPreview(); }
 function applyGToAll(idx) { saveHistory(); let b = currentBoxes[idx]; let first = b.gBars[0] || {h:0, v:0}; for(let j=0; j<b.p; j++) b.gBars[j] = { ...first }; renderPartsUI(); drawPreview(); }
 function splitH(idx) { saveHistory(); let b = currentBoxes[idx]; let vR = parseFloat(prompt(`ENTER TOP HEIGHT:`)); if (vR > 0 && toBase(vR) < b.h) { let val = toBase(vR); let pid = Date.now(); currentBoxes.splice(idx, 1, { ...b, id: pid, h: val, type: 'fixed', p: 1, gBars:[{h:0, v:0}], doorType:'1L' }, { ...b, id: pid+1, y: b.y + val, h: b.h - val, p: 1, gBars:[{h:0, v:0}], doorType:'1L' }); renderPartsUI(); drawPreview(); } }
@@ -443,17 +424,28 @@ function wrapSpecLine(ctx, label, value, x, y, maxWidth, lineHeight) {
 }
 
 function drawPreview() { 
+    let sVal = getVal("seriesSpec");
+    let mVal = getVal("meshSpec");
+
     let d = { 
-        w: parseFloat(document.getElementById("w").value)||0, h: parseFloat(document.getElementById("h").value)||0, 
-        unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, 
-        glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, 
-        series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), 
-        qty: document.getElementById("qtySpec").value,
-        rate: document.getElementById("rateSpec").value, 
-        mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), 
-        notes: document.getElementById("notes").value, boxes: currentBoxes 
+        w: parseFloat(getVal("w")) || 0, 
+        h: parseFloat(getVal("h")) || 0, 
+        unit: getVal("unit") || "feet", 
+        tag: getVal("winTag"), 
+        glass: getVal("glassSpec"), 
+        color: getVal("colorSpec"), 
+        lock: getVal("lockSpec"), 
+        lockPos: getVal("lockHSpec") || "CENTRE", 
+        series: (sVal === "MANUAL" ? getVal("seriesManual") : sVal), 
+        qty: getVal("qtySpec") || "1",
+        rate: getVal("rateSpec"), 
+        mesh: (mVal === "MANUAL" ? getVal("meshManual") : mVal), 
+        notes: getVal("notes"), 
+        boxes: currentBoxes 
     }; 
-    drawIndividual(document.getElementById("previewCanvas"), d, true); 
+    
+    let canvas = document.getElementById("previewCanvas");
+    if(canvas) drawIndividual(canvas, d, true); 
 }
 
 function drawIndividual(canvas, d, isP) {
@@ -477,13 +469,13 @@ function drawIndividual(canvas, d, isP) {
         if (b.type === 'door') { ctx.setLineDash([5, 5]); ctx.beginPath(); if(b.doorType === 'double') { let gap = 10; let pW = (bw - gap) / 2; ctx.moveTo(bx, by); ctx.lineTo(bx+pW, by+bh/2); ctx.lineTo(bx, by+bh); ctx.moveTo(bx+bw, by); ctx.lineTo(bx+bw-pW, by+bh/2); ctx.lineTo(bx+bw, by+bh); } else if(b.doorType === '1L') { ctx.moveTo(bx, by); ctx.lineTo(bx+bw, by+bh/2); ctx.lineTo(bx, by+bh); } else if(b.doorType === '1R') { ctx.moveTo(bx+bw, by); ctx.lineTo(bx, by+bh/2); ctx.lineTo(bx+bw, by+bh); } else if(b.doorType === 'tophung') { ctx.moveTo(bx, by); ctx.lineTo(bx+bw/2, by+bh); ctx.lineTo(bx+bw, by); } ctx.stroke(); ctx.setLineDash([]); } else if (b.type === 'fan') { let r = Math.min(bw, bh)*0.3; ctx.beginPath(); ctx.arc(bx+bw/2, by+bh/2, r, 0, 2*Math.PI); ctx.stroke(); ctx.moveTo(bx+bw/2-r*0.7, by+bh/2-r*0.7); ctx.lineTo(bx+bw/2+r*0.7, by+bh/2+r*0.7); ctx.moveTo(bx+bw/2+r*0.7, by+bh/2-r*0.7); ctx.lineTo(bx+bw/2-r*0.7, by+bh/2+r*0.7); ctx.stroke(); }
     });
     
-    let qty = parseFloat(d.qty) || parseFloat(document.getElementById("qtySpec").value) || 1;
+    let qty = parseFloat(d.qty) || 1;
     let area = (wB * hB * qty).toFixed(2);
     let rate = parseFloat(d.rate) || 0;
     let amount = (area * rate).toFixed(2);
 
     if(isP) {
-        document.getElementById("areaSpec").value = area;
+        setVal("areaSpec", area);
     }
 
     ctx.textAlign="left"; ctx.font="bold 12px Arial"; 
@@ -498,10 +490,16 @@ function drawIndividual(canvas, d, isP) {
     sY += 24; ctx.fillStyle = "#0f172a"; ctx.font="bold 11px Arial"; ctx.fillText("ENGINEERING SPECIFICATIONS:", sX, sY); sY += 16;
 
     let sps = [
-        {l:"SERIES SYSTEM: ", v:d.series}, {l:"GLASS: ", v:d.glass}, 
-        {l:"COLOR: ", v:d.color}, {l:"MESH OPTION: ", v:d.mesh}, 
-        {l:"QUANTITY: ", v:qty}, {l:"AREA (SQ.FT): ", v:area}, 
-        {l:"RATE / SQ.FT: ", v:rate}, {l:"TOTAL AMOUNT: ", v: rate > 0 ? "₹ " + amount : ""}
+        {l:"SERIES SYSTEM: ", v:d.series}, 
+        {l:"GLASS: ", v:d.glass}, 
+        {l:"COLOR: ", v:d.color}, 
+        {l:"LOCK TYPE: ", v:d.lock}, 
+        {l:"LOCK POSITION: ", v:d.lockPos}, 
+        {l:"MESH OPTION: ", v:d.mesh}, 
+        {l:"QUANTITY: ", v:qty}, 
+        {l:"AREA (SQ.FT): ", v:area}, 
+        {l:"RATE / SQ.FT: ", v:rate}, 
+        {l:"TOTAL AMOUNT: ", v: rate > 0 ? "₹ " + amount : ""}
     ];
     
     sps.forEach(s => { sY = wrapSpecLine(ctx, s.l, s.v, sX, sY, mW, 15); });
@@ -516,34 +514,95 @@ function drawIndividual(canvas, d, isP) {
 
 function addOrUpdateWindow() { 
     if(currentBoxes.length===0) return alert("ENTER SIZE"); 
+    
+    let sVal = getVal("seriesSpec");
+    let mVal = getVal("meshSpec");
+
     let d = { 
-        w: parseFloat(document.getElementById("w").value), h: parseFloat(document.getElementById("h").value), unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), 
-        qty: document.getElementById("qtySpec").value,
-        area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: JSON.parse(JSON.stringify(currentBoxes)) 
+        w: parseFloat(getVal("w")) || 0, 
+        h: parseFloat(getVal("h")) || 0, 
+        unit: getVal("unit") || "feet", 
+        tag: getVal("winTag"), 
+        glass: getVal("glassSpec"), 
+        color: getVal("colorSpec"), 
+        lock: getVal("lockSpec"), 
+        lockPos: getVal("lockHSpec") || "CENTRE", 
+        series: (sVal === "MANUAL" ? getVal("seriesManual") : sVal), 
+        qty: getVal("qtySpec") || "1",
+        area: getVal("areaSpec"), 
+        rate: getVal("rateSpec"), 
+        mesh: (mVal === "MANUAL" ? getVal("meshManual") : mVal), 
+        notes: getVal("notes"), 
+        boxes: JSON.parse(JSON.stringify(currentBoxes)) 
     }; 
-    let idx = parseInt(document.getElementById("editIndex").value); 
+    
+    let editIdxVal = getVal("editIndex");
+    let idx = editIdxVal ? parseInt(editIdxVal) : -1; 
+    
     if(idx === -1) projectWindows.push(d); else projectWindows[idx] = d; 
-    renderProject(); clearAll(); 
-    setTimeout(() => { document.getElementById("projectSheet").scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+    
+    renderProject(); 
+    clearAll(); 
+    setTimeout(() => { 
+        let sheet = document.getElementById("projectSheet");
+        if(sheet) sheet.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+    }, 100);
 }
 
 function clearAll() { 
-    document.getElementById("w").value = ""; document.getElementById("h").value = ""; document.getElementById("winTag").value = ""; document.getElementById("notes").value = ""; document.getElementById("glassSpec").value = ""; document.getElementById("colorSpec").value = ""; document.getElementById("seriesSpec").value = ""; document.getElementById("seriesManual").value = ""; document.getElementById("seriesManual").classList.add("hidden"); document.getElementById("areaSpec").value = ""; document.getElementById("rateSpec").value = ""; document.getElementById("meshSpec").value = ""; document.getElementById("meshManual").value = ""; document.getElementById("meshManual").classList.add("hidden"); 
-    document.getElementById("qtySpec").value = "1";
-    currentBoxes = []; historyStack = []; document.getElementById('partsManager').innerHTML = `<div class="empty-state"><div class="empty-icon">📏</div>Input dimensions to initialize structural grid</div>`; document.getElementById("editIndex").value = "-1"; drawPreview(); 
+    setVal("w", ""); 
+    setVal("h", ""); 
+    setVal("winTag", ""); 
+    setVal("notes", ""); 
+    setVal("glassSpec", ""); 
+    setVal("colorSpec", ""); 
+    setVal("lockSpec", ""); 
+    setVal("lockHSpec", "CENTRE"); 
+    setVal("seriesSpec", ""); 
+    setVal("seriesManual", ""); 
+    
+    let sMan = document.getElementById("seriesManual");
+    if(sMan) sMan.classList.add("hidden"); 
+    
+    setVal("areaSpec", ""); 
+    setVal("rateSpec", ""); 
+    setVal("meshSpec", ""); 
+    setVal("meshManual", ""); 
+    
+    let mMan = document.getElementById("meshManual");
+    if(mMan) mMan.classList.add("hidden"); 
+    
+    setVal("qtySpec", "1");
+    currentBoxes = []; 
+    historyStack = []; 
+    
+    const pm = document.getElementById('partsManager');
+    if(pm) pm.innerHTML = `<div class="empty-state"><div class="empty-icon">📏</div>Input dimensions to initialize structural grid</div>`; 
+    
+    setVal("editIndex", "-1"); 
+    drawPreview(); 
 }
 
 function renderProject() {
     let hasW = projectWindows.length > 0;
-    document.getElementById("welcomePage").style.display = hasW ? "block" : "none"; 
-    document.getElementById("projectSheet").style.display = hasW ? "block" : "none"; 
-    document.getElementById("drawingsTable").style.display = hasW ? "table" : "none";
-    document.getElementById("printSite").innerText = (document.getElementById("siteLoc").value || "---").toUpperCase(); 
-    document.getElementById("printDate").innerText = document.getElementById("projDate").value || "---"; 
-    document.getElementById("printClientName").innerText = (document.getElementById("clientName").value || "---").toUpperCase();
-    document.getElementById("printWelcomeLetter").innerText = document.getElementById("welcomeText").value.toUpperCase(); 
-    document.getElementById("printDisclaimerText").innerText = document.getElementById("disclaimerText").value.toUpperCase();
-    let l = document.getElementById("windowList"); l.innerHTML = "";
+    setDisplay("welcomePage", hasW ? "block" : "none"); 
+    setDisplay("projectSheet", hasW ? "block" : "none"); 
+    setDisplay("drawingsTable", hasW ? "table" : "none");
+    
+    setText("printSite", (getVal("siteLoc") || "---").toUpperCase()); 
+    setText("printDate", getVal("projDate") || "---"); 
+    setText("printClientName", (getVal("clientName") || "---").toUpperCase());
+    
+    const wText = getVal("welcomeText");
+    if(wText) setText("printWelcomeLetter", wText.toUpperCase()); 
+    
+    const dText = getVal("disclaimerText");
+    if(dText) setText("printDisclaimerText", dText.toUpperCase());
+    
+    let l = document.getElementById("windowList"); 
+    if(!l) return;
+    
+    l.innerHTML = "";
     projectWindows.forEach((win, i) => {
         let div = document.createElement("div"); div.className = "drawing-container";
         div.innerHTML = `<button class="copy-btn" onclick="copyWindow(${i})">COPY</button><button class="edit-btn-saved" onclick="editWindow(${i})">EDIT</button><button class="del-btn-saved" onclick="deleteSaved(${i})">X</button>`;
@@ -556,15 +615,70 @@ function deleteSaved(idx) { if(confirm("DELETE?")) { projectWindows.splice(idx,1
 
 function assignSpecValues(d) {
     let stdS = ["M PLUS 65", "M PLUS 16 SLIM", "M PRIME 55", "M PRIME 20 SLIM", "M PRO 50 TR", "M PRO 15 FB", ""]; 
-    if (stdS.includes(d.series)) { document.getElementById("seriesSpec").value = d.series; document.getElementById("seriesManual").classList.add("hidden"); } else { document.getElementById("seriesSpec").value = "MANUAL"; document.getElementById("seriesManual").value = d.series; document.getElementById("seriesManual").classList.remove("hidden"); } 
+    if (stdS.includes(d.series)) { 
+        setVal("seriesSpec", d.series); 
+        let sMan = document.getElementById("seriesManual");
+        if(sMan) sMan.classList.add("hidden"); 
+    } else { 
+        setVal("seriesSpec", "MANUAL"); 
+        setVal("seriesManual", d.series); 
+        let sMan = document.getElementById("seriesManual");
+        if(sMan) sMan.classList.remove("hidden"); 
+    } 
     let stdM = ["PLEATED INSIDE", "PLEATED OUTSIDE", "REGULAR", "NO MESH", ""]; 
-    if (stdM.includes(d.mesh)) { document.getElementById("meshSpec").value = d.mesh; document.getElementById("meshManual").classList.add("hidden"); } else { document.getElementById("meshSpec").value = "MANUAL"; document.getElementById("meshManual").value = d.mesh; document.getElementById("meshManual").classList.remove("hidden"); }
+    if (stdM.includes(d.mesh)) { 
+        setVal("meshSpec", d.mesh); 
+        let mMan = document.getElementById("meshManual");
+        if(mMan) mMan.classList.add("hidden"); 
+    } else { 
+        setVal("meshSpec", "MANUAL"); 
+        setVal("meshManual", d.mesh); 
+        let mMan = document.getElementById("meshManual");
+        if(mMan) mMan.classList.remove("hidden"); 
+    }
 }
 
 function copyWindow(i) { 
-    let d = projectWindows[i]; document.getElementById("w").value = d.w; document.getElementById("h").value = d.h; document.getElementById("unit").value = d.unit; document.getElementById("winTag").value = d.tag + " (COPY)"; document.getElementById("glassSpec").value = d.glass || ""; document.getElementById("colorSpec").value = d.color || ""; assignSpecValues(d); document.getElementById("qtySpec").value = d.qty || "1"; document.getElementById("areaSpec").value = d.area || ""; document.getElementById("rateSpec").value = d.rate || ""; document.getElementById("notes").value = d.notes; currentBoxes = JSON.parse(JSON.stringify(d.boxes)); document.getElementById("editIndex").value = "-1"; renderPartsUI(); drawPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
+    let d = projectWindows[i]; 
+    setVal("w", d.w); 
+    setVal("h", d.h); 
+    setVal("unit", d.unit); 
+    setVal("winTag", d.tag + " (COPY)"); 
+    setVal("glassSpec", d.glass || ""); 
+    setVal("colorSpec", d.color || ""); 
+    setVal("lockSpec", d.lock || ""); 
+    setVal("lockHSpec", d.lockPos || "CENTRE"); 
+    assignSpecValues(d); 
+    setVal("qtySpec", d.qty || "1"); 
+    setVal("areaSpec", d.area || ""); 
+    setVal("rateSpec", d.rate || ""); 
+    setVal("notes", d.notes || ""); 
+    currentBoxes = JSON.parse(JSON.stringify(d.boxes)); 
+    setVal("editIndex", "-1"); 
+    renderPartsUI(); 
+    drawPreview(); 
+    window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
 function editWindow(i) { 
-    let d = projectWindows[i]; document.getElementById("w").value = d.w; document.getElementById("h").value = d.h; document.getElementById("unit").value = d.unit; document.getElementById("winTag").value = d.tag; document.getElementById("glassSpec").value = d.glass || ""; document.getElementById("colorSpec").value = d.color || ""; assignSpecValues(d); document.getElementById("qtySpec").value = d.qty || "1"; document.getElementById("areaSpec").value = d.area || ""; document.getElementById("rateSpec").value = d.rate || ""; document.getElementById("notes").value = d.notes; currentBoxes = JSON.parse(JSON.stringify(d.boxes)); historyStack = []; document.getElementById("editIndex").value = i; renderPartsUI(); drawPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
+    let d = projectWindows[i]; 
+    setVal("w", d.w); 
+    setVal("h", d.h); 
+    setVal("unit", d.unit); 
+    setVal("winTag", d.tag || ""); 
+    setVal("glassSpec", d.glass || ""); 
+    setVal("colorSpec", d.color || ""); 
+    setVal("lockSpec", d.lock || ""); 
+    setVal("lockHSpec", d.lockPos || "CENTRE"); 
+    assignSpecValues(d); 
+    setVal("qtySpec", d.qty || "1"); 
+    setVal("areaSpec", d.area || ""); 
+    setVal("rateSpec", d.rate || ""); 
+    setVal("notes", d.notes || ""); 
+    currentBoxes = JSON.parse(JSON.stringify(d.boxes)); 
+    historyStack = []; 
+    setVal("editIndex", i); 
+    renderPartsUI(); 
+    drawPreview(); 
+    window.scrollTo({top: 0, behavior: 'smooth'});
 }
