@@ -71,15 +71,53 @@ async function checkSession() {
     if (session) {
         document.getElementById('authScreen').style.display = 'none';
         
+        // UPDATE: Fetch subscription_end_date from the database
         const { data: profile } = await supabaseClient
             .from('profiles')
-            .select('payment_status')
+            .select('payment_status, subscription_end_date')
             .eq('id', session.user.id)
             .single();
 
         if (profile && profile.payment_status === 'cleared') {
+            
+            // --- NEW: Due Date Expiry Logic ---
+            let today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate day counting
+            
+            let endDate = profile.subscription_end_date ? new Date(profile.subscription_end_date) : null;
+            
+            if (endDate) {
+                endDate.setHours(0, 0, 0, 0);
+                
+                // 1. Check for lockout (Expired)
+                if (today > endDate) {
+                    document.querySelector('.app-container').style.display = 'none';
+                    document.getElementById('paymentScreen').style.display = 'flex';
+                    
+                    // Auto-update their status to 'pending' in database so Admin sees it
+                    await supabaseClient.from('profiles').update({ payment_status: 'pending' }).eq('id', session.user.id);
+                    return; // Stop execution
+                }
+            }
+
+            // Access Granted
             document.getElementById('paymentScreen').style.display = 'none';
             document.querySelector('.app-container').style.display = 'flex';
+            
+            // 2. Check for Warning Banner (Expires in 7 days or less)
+            if (endDate) {
+                let diffTime = endDate - today;
+                let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays <= 7 && diffDays >= 0) {
+                    showExpiryWarning(diffDays, endDate.toLocaleDateString());
+                } else {
+                    // Remove banner if they recently renewed
+                    let existingBanner = document.getElementById('expiry-banner');
+                    if (existingBanner) existingBanner.remove();
+                }
+            }
+
         } else {
             document.querySelector('.app-container').style.display = 'none';
             document.getElementById('paymentScreen').style.display = 'flex';
@@ -90,7 +128,20 @@ async function checkSession() {
         document.querySelector('.app-container').style.display = 'none';
     }
 }
-
+// --- NEW: Function to show subscription warning banner ---
+function showExpiryWarning(daysLeft, dateStr) {
+    let existingBanner = document.getElementById('expiry-banner');
+    if (!existingBanner) {
+        let banner = document.createElement('div');
+        banner.id = 'expiry-banner';
+        banner.style.cssText = 'background-color: #fef08a; color: #854d0e; padding: 10px; text-align: center; font-family: "Poppins", sans-serif; font-size: 13px; font-weight: 600; border-bottom: 2px solid #eab308; width: 100%; z-index: 9999; position: relative;';
+        document.body.insertBefore(banner, document.body.firstChild);
+        existingBanner = banner;
+    }
+    
+    let timeText = daysLeft === 0 ? "TODAY" : `in ${daysLeft} days`;
+    existingBanner.innerHTML = `⚠️ <strong>Action Required:</strong> Your SMG Studio subscription expires ${timeText} (${dateStr}). Please arrange payment to avoid service interruption.`;
+}
 async function handleSignUp() {
     const email = document.getElementById('emailInput').value;
     const password = document.getElementById('passwordInput').value;
