@@ -8,11 +8,11 @@ let currentCloudProjectId = null;
 // --- Authentication & Initialization Logic ---
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelector('.app-container').style.display = 'none';
-    loadBranding(); 
+    loadBranding(); // Fetch custom name/logo
     checkSession();
 });
 
-// --- Fetch and Apply Global Branding ---
+// --- NEW: Fetch and Apply Global Branding ---
 async function loadBranding() {
     const { data, error } = await supabaseClient.from('app_settings').select('*').eq('id', 1).single();
     
@@ -369,6 +369,7 @@ function createNewProject() {
     } 
 }
 
+
 // --- Quotation Maker Core Logic ---
 let projectWindows = []; let currentBoxes = []; let historyStack = []; let currentLogoData = "logo.png";
 function saveHistory() { historyStack.push(JSON.stringify(currentBoxes)); if (historyStack.length > 50) historyStack.shift(); }
@@ -443,20 +444,14 @@ function wrapSpecLine(ctx, label, value, x, y, maxWidth, lineHeight) {
 
 function drawPreview() { 
     let d = { 
-        w: parseFloat(document.getElementById("w").value)||0, 
-        h: parseFloat(document.getElementById("h").value)||0, 
-        unit: document.getElementById("unit").value, 
-        tag: document.getElementById("winTag").value, 
-        glass: document.getElementById("glassSpec").value, 
-        color: document.getElementById("colorSpec").value, 
-        lock: document.getElementById("lockSpec").value, 
-        lockPos: document.getElementById("lockHSpec").value, 
+        w: parseFloat(document.getElementById("w").value)||0, h: parseFloat(document.getElementById("h").value)||0, 
+        unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, 
+        glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, 
         series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), 
         qty: document.getElementById("qtySpec").value,
         rate: document.getElementById("rateSpec").value, 
         mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), 
-        notes: document.getElementById("notes").value, 
-        boxes: currentBoxes 
+        notes: document.getElementById("notes").value, boxes: currentBoxes 
     }; 
     drawIndividual(document.getElementById("previewCanvas"), d, true); 
 }
@@ -503,16 +498,10 @@ function drawIndividual(canvas, d, isP) {
     sY += 24; ctx.fillStyle = "#0f172a"; ctx.font="bold 11px Arial"; ctx.fillText("ENGINEERING SPECIFICATIONS:", sX, sY); sY += 16;
 
     let sps = [
-        {l:"SERIES SYSTEM: ", v:d.series}, 
-        {l:"GLASS: ", v:d.glass}, 
-        {l:"COLOR: ", v:d.color}, 
-        {l:"LOCK TYPE: ", v:d.lock}, 
-        {l:"LOCK POSITION: ", v:d.lockPos}, 
-        {l:"MESH OPTION: ", v:d.mesh}, 
-        {l:"QUANTITY: ", v:qty}, 
-        {l:"AREA (SQ.FT): ", v:area}, 
-        {l:"RATE / SQ.FT: ", v:rate}, 
-        {l:"TOTAL AMOUNT: ", v: rate > 0 ? "₹ " + amount : ""}
+        {l:"SERIES SYSTEM: ", v:d.series}, {l:"GLASS: ", v:d.glass}, 
+        {l:"COLOR: ", v:d.color}, {l:"MESH OPTION: ", v:d.mesh}, 
+        {l:"QUANTITY: ", v:qty}, {l:"AREA (SQ.FT): ", v:area}, 
+        {l:"RATE / SQ.FT: ", v:rate}, {l:"TOTAL AMOUNT: ", v: rate > 0 ? "₹ " + amount : ""}
     ];
     
     sps.forEach(s => { sY = wrapSpecLine(ctx, s.l, s.v, sX, sY, mW, 15); });
@@ -528,21 +517,9 @@ function drawIndividual(canvas, d, isP) {
 function addOrUpdateWindow() { 
     if(currentBoxes.length===0) return alert("ENTER SIZE"); 
     let d = { 
-        w: parseFloat(document.getElementById("w").value), 
-        h: parseFloat(document.getElementById("h").value), 
-        unit: document.getElementById("unit").value, 
-        tag: document.getElementById("winTag").value, 
-        glass: document.getElementById("glassSpec").value, 
-        color: document.getElementById("colorSpec").value, 
-        lock: document.getElementById("lockSpec").value, 
-        lockPos: document.getElementById("lockHSpec").value, 
-        series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), 
+        w: parseFloat(document.getElementById("w").value), h: parseFloat(document.getElementById("h").value), unit: document.getElementById("unit").value, tag: document.getElementById("winTag").value, glass: document.getElementById("glassSpec").value, color: document.getElementById("colorSpec").value, series: (document.getElementById("seriesSpec").value === "MANUAL" ? document.getElementById("seriesManual").value : document.getElementById("seriesSpec").value), 
         qty: document.getElementById("qtySpec").value,
-        area: document.getElementById("areaSpec").value, 
-        rate: document.getElementById("rateSpec").value, 
-        mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), 
-        notes: document.getElementById("notes").value, 
-        boxes: JSON.parse(JSON.stringify(currentBoxes)) 
+        area: document.getElementById("areaSpec").value, rate: document.getElementById("rateSpec").value, mesh: (document.getElementById("meshSpec").value === "MANUAL" ? document.getElementById("meshManual").value : document.getElementById("meshSpec").value), notes: document.getElementById("notes").value, boxes: JSON.parse(JSON.stringify(currentBoxes)) 
     }; 
     let idx = parseInt(document.getElementById("editIndex").value); 
     if(idx === -1) projectWindows.push(d); else projectWindows[idx] = d; 
@@ -551,28 +528,9 @@ function addOrUpdateWindow() {
 }
 
 function clearAll() { 
-    document.getElementById("w").value = ""; 
-    document.getElementById("h").value = ""; 
-    document.getElementById("winTag").value = ""; 
-    document.getElementById("notes").value = ""; 
-    document.getElementById("glassSpec").value = ""; 
-    document.getElementById("colorSpec").value = ""; 
-    document.getElementById("lockSpec").value = ""; 
-    document.getElementById("lockHSpec").value = "CENTRE"; 
-    document.getElementById("seriesSpec").value = ""; 
-    document.getElementById("seriesManual").value = ""; 
-    document.getElementById("seriesManual").classList.add("hidden"); 
-    document.getElementById("areaSpec").value = ""; 
-    document.getElementById("rateSpec").value = ""; 
-    document.getElementById("meshSpec").value = ""; 
-    document.getElementById("meshManual").value = ""; 
-    document.getElementById("meshManual").classList.add("hidden"); 
+    document.getElementById("w").value = ""; document.getElementById("h").value = ""; document.getElementById("winTag").value = ""; document.getElementById("notes").value = ""; document.getElementById("glassSpec").value = ""; document.getElementById("colorSpec").value = ""; document.getElementById("seriesSpec").value = ""; document.getElementById("seriesManual").value = ""; document.getElementById("seriesManual").classList.add("hidden"); document.getElementById("areaSpec").value = ""; document.getElementById("rateSpec").value = ""; document.getElementById("meshSpec").value = ""; document.getElementById("meshManual").value = ""; document.getElementById("meshManual").classList.add("hidden"); 
     document.getElementById("qtySpec").value = "1";
-    currentBoxes = []; 
-    historyStack = []; 
-    document.getElementById('partsManager').innerHTML = `<div class="empty-state"><div class="empty-icon">📏</div>Input dimensions to initialize structural grid</div>`; 
-    document.getElementById("editIndex").value = "-1"; 
-    drawPreview(); 
+    currentBoxes = []; historyStack = []; document.getElementById('partsManager').innerHTML = `<div class="empty-state"><div class="empty-icon">📏</div>Input dimensions to initialize structural grid</div>`; document.getElementById("editIndex").value = "-1"; drawPreview(); 
 }
 
 function renderProject() {
@@ -604,46 +562,9 @@ function assignSpecValues(d) {
 }
 
 function copyWindow(i) { 
-    let d = projectWindows[i]; 
-    document.getElementById("w").value = d.w; 
-    document.getElementById("h").value = d.h; 
-    document.getElementById("unit").value = d.unit; 
-    document.getElementById("winTag").value = d.tag + " (COPY)"; 
-    document.getElementById("glassSpec").value = d.glass || ""; 
-    document.getElementById("colorSpec").value = d.color || ""; 
-    document.getElementById("lockSpec").value = d.lock || ""; 
-    document.getElementById("lockHSpec").value = d.lockPos || "CENTRE"; 
-    assignSpecValues(d); 
-    document.getElementById("qtySpec").value = d.qty || "1"; 
-    document.getElementById("areaSpec").value = d.area || ""; 
-    document.getElementById("rateSpec").value = d.rate || ""; 
-    document.getElementById("notes").value = d.notes; 
-    currentBoxes = JSON.parse(JSON.stringify(d.boxes)); 
-    document.getElementById("editIndex").value = "-1"; 
-    renderPartsUI(); 
-    drawPreview(); 
-    window.scrollTo({top: 0, behavior: 'smooth'});
+    let d = projectWindows[i]; document.getElementById("w").value = d.w; document.getElementById("h").value = d.h; document.getElementById("unit").value = d.unit; document.getElementById("winTag").value = d.tag + " (COPY)"; document.getElementById("glassSpec").value = d.glass || ""; document.getElementById("colorSpec").value = d.color || ""; assignSpecValues(d); document.getElementById("qtySpec").value = d.qty || "1"; document.getElementById("areaSpec").value = d.area || ""; document.getElementById("rateSpec").value = d.rate || ""; document.getElementById("notes").value = d.notes; currentBoxes = JSON.parse(JSON.stringify(d.boxes)); document.getElementById("editIndex").value = "-1"; renderPartsUI(); drawPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
 function editWindow(i) { 
-    let d = projectWindows[i]; 
-    document.getElementById("w").value = d.w; 
-    document.getElementById("h").value = d.h; 
-    document.getElementById("unit").value = d.unit; 
-    document.getElementById("winTag").value = d.tag; 
-    document.getElementById("glassSpec").value = d.glass || ""; 
-    document.getElementById("colorSpec").value = d.color || ""; 
-    document.getElementById("lockSpec").value = d.lock || ""; 
-    document.getElementById("lockHSpec").value = d.lockPos || "CENTRE"; 
-    assignSpecValues(d); 
-    document.getElementById("qtySpec").value = d.qty || "1"; 
-    document.getElementById("areaSpec").value = d.area || ""; 
-    document.getElementById("rateSpec").value = d.rate || ""; 
-    document.getElementById("notes").value = d.notes; 
-    currentBoxes = JSON.parse(JSON.stringify(d.boxes)); 
-    historyStack = []; 
-    document.getElementById("editIndex").value = i; 
-    renderPartsUI(); 
-    drawPreview(); 
-    window.scrollTo({top: 0, behavior: 'smooth'});
+    let d = projectWindows[i]; document.getElementById("w").value = d.w; document.getElementById("h").value = d.h; document.getElementById("unit").value = d.unit; document.getElementById("winTag").value = d.tag; document.getElementById("glassSpec").value = d.glass || ""; document.getElementById("colorSpec").value = d.color || ""; assignSpecValues(d); document.getElementById("qtySpec").value = d.qty || "1"; document.getElementById("areaSpec").value = d.area || ""; document.getElementById("rateSpec").value = d.rate || ""; document.getElementById("notes").value = d.notes; currentBoxes = JSON.parse(JSON.stringify(d.boxes)); historyStack = []; document.getElementById("editIndex").value = i; renderPartsUI(); drawPreview(); window.scrollTo({top: 0, behavior: 'smooth'});
 }
