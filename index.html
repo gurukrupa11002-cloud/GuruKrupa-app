@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">SMG Infosolutions - Premium Engineering Studio</title>
+    <title>SMG Infosolutions - Premium Engineering Studio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -11,17 +12,19 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js" defer></script>
 </head>
+
 <body>
+
     <div id="authScreen" class="auth-layout">
         <div class="auth-banner">
             <div class="auth-banner-content">
-                <div class="brand-icon-large">🛡️</div>
-                <h1 id="heroBrandName">SMG Infosolutions</h1>
+                <div class="brand-icon-large">📐</div>
+                <h1>SMG Infosolutions</h1>
                 <p>Enterprise Quotation & Drawing Studio</p>
                 <div class="auth-feature-list">
-                    <div class="feature-item"><span>✔️</span> Precision Engineering Drafts</div>
-                    <div class="feature-item"><span>✔️</span> Automated Quotation Logic</div>
-                    <div class="feature-item"><span>✔️</span> Secure Cloud Synchronization</div>
+                    <div class="feature-item"><span>✓</span> Precision Engineering Drafts</div>
+                    <div class="feature-item"><span>✓</span> Automated Quotation Logic</div>
+                    <div class="feature-item"><span>✓</span> Secure Cloud Synchronization</div>
                 </div>
             </div>
         </div>
@@ -61,6 +64,7 @@
                     <p id="toggleLoginText" style="display: none;">Already have an account? <a href="javascript:void(0)" onclick="toggleAuthMode('login')">Log in</a></p>
                     <p id="toggleForgotText"><a href="javascript:void(0)" onclick="toggleAuthMode('reset')" style="color: var(--text-muted);">Forgot your password?</a></p>
                 </div>
+
                 <p id="authMessage" class="auth-msg"></p>
             </div>
         </div>
@@ -71,13 +75,11 @@
             <div style="font-size: 40px; margin-bottom: 15px;">🔒</div>
             <h2 style="margin-top: 0; color: var(--brand-dark);">Payment Pending</h2>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5;">Your account has been created successfully, but your access is currently locked pending payment verification.</p>
-            
             <div style="background: #f8fafc; padding: 15px; border-radius: var(--radius-md); border: 1px dashed #cbd5e1; margin-bottom: 20px;">
                 <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600;">Scan to Pay via UPI:</p>
                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi%3A%2F%2Fpay%3Fpa%3Djadavkaran293%40oksbi" alt="UPI QR" style="width: 150px; height: 150px; border-radius: 8px;">
                 <p style="margin: 10px 0 0 0; font-size: 11px; color: var(--text-muted);">UPI ID: jadavkaran293@oksbi</p>
             </div>
-
             <button class="btn btn-outline-primary full-width" onclick="checkSession()">I have paid, refresh status</button>
             <button class="btn btn-glass full-width" style="margin-top: 10px; color: var(--text-muted); border-color: var(--border-color);" onclick="supabaseClient.auth.signOut().then(() => location.reload())">Log Out</button>
         </div>
@@ -101,8 +103,7 @@
                 <button class="btn btn-glass" style="color: var(--text-muted); border-color: var(--border-color);" onclick="document.getElementById('cloudBrowser').style.display='none'">Close</button>
             </div>
             <div id="cloudProjectList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
-                <!-- Cloud projects loaded here -->
-            </div>
+                </div>
         </div>
     </div>
 
@@ -111,13 +112,13 @@
             <div class="brand">
                 <div class="brand-icon">📐</div>
                 <div>
-                    <h1 id="navBrandName">SMG Infosolutions</h1>
+                    <h1>SMG Infosolutions</h1>
                     <span class="badge">Cloud Quotation Studio</span>
                 </div>
             </div>
             <div class="global-actions">
                 <button class="btn btn-glass" onclick="saveProjectToCloud()">☁️ Save to Cloud</button>
-                <button class="btn btn-glass" onclick="openCloudBrowser()">📂 Load Cloud</button>
+                <button class="btn btn-glass" onclick="openCloudBrowser()">☁️ Load Cloud</button>
                 <button class="btn btn-danger" onclick="createNewProject()">Reset Form</button>
                 <button class="btn btn-gradient print-btn" onclick="window.print()">🖨️ Export PDF</button>
                 <button class="btn btn-glass" style="border-color: rgba(239, 68, 68, 0.5); color: #fca5a5;" onclick="handleLogout()">🚪 Log Out</button>
@@ -202,7 +203,7 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
 
                         <div class="form-control"><label>Glass Spec</label><input type="text" id="glassSpec" placeholder="Type / Thickness" oninput="drawPreview()"></div>
                         <div class="form-control"><label>Color Finish</label><input type="text" id="colorSpec" placeholder="Profile Color" oninput="drawPreview()"></div>
-                    
+                        <div class="form-control"><label>Lock Type</label><input type="text" id="lockSpec" placeholder="Hardware Type" oninput="drawPreview()"></div>
 
                         <div class="form-control">
                             <label>Mesh Option</label>
@@ -235,7 +236,7 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
             <section class="panel col-preview">
                 <div class="panel-header preview-header">
                     <span><span class="step-num">3</span> Live Canvas</span>
-                    <button class="btn btn-soft btn-sm" onclick="undoAction()">↩️ Undo Action</button>
+                    <button class="btn btn-soft btn-sm" onclick="undoAction()">⟲ Undo Action</button>
                 </div>
                 <div class="panel-body render-area">
                     <div class="canvas-wrapper"><canvas id="previewCanvas" width="500" height="580"></canvas></div>
@@ -248,12 +249,10 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
         </main>
     </div>
 
-    <!-- Print Canvas System -->
     <div id="projectSheet" style="display:none;">
         <div style="text-align: center; color: var(--brand-dark); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;" class="no-print">
-            📄 Generated Project Documents 
+            ↓ Generated Project Documents ↓
         </div>
-
         <div id="welcomePage" class="welcome-box">
             <div class="welcome-logo-wrapper"><img id="welcomeLogo" src="logo.png" alt="Logo" class="header-logo" onerror="this.style.display='none'"></div>
             <div class="project-info-block">
