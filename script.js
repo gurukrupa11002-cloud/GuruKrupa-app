@@ -493,7 +493,6 @@ function drawIndividual(canvas, d, isP) {
         {l:"GLASS: ", v:d.glass}, 
         {l:"COLOR: ", v:d.color}, 
         {l:"LOCK TYPE: ", v:d.lock}, 
-        {l:"LOCK POSITION: ", v:d.lockPos}, 
         {l:"MESH OPTION: ", v:d.mesh}, 
         {l:"QUANTITY: ", v:qty}, 
         {l:"AREA (SQ.FT): ", v:area}, 
