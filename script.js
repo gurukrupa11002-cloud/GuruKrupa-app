@@ -435,7 +435,6 @@ function drawPreview() {
         glass: getVal("glassSpec"), 
         color: getVal("colorSpec"), 
         lock: getVal("lockSpec"), 
-        lockPos: getVal("lockHSpec") || "CENTRE", 
         series: (sVal === "MANUAL" ? getVal("seriesManual") : sVal), 
         qty: getVal("qtySpec") || "1",
         rate: getVal("rateSpec"), 
@@ -526,7 +525,6 @@ function addOrUpdateWindow() {
         glass: getVal("glassSpec"), 
         color: getVal("colorSpec"), 
         lock: getVal("lockSpec"), 
-        lockPos: getVal("lockHSpec") || "CENTRE", 
         series: (sVal === "MANUAL" ? getVal("seriesManual") : sVal), 
         qty: getVal("qtySpec") || "1",
         area: getVal("areaSpec"), 
@@ -557,7 +555,6 @@ function clearAll() {
     setVal("glassSpec", ""); 
     setVal("colorSpec", ""); 
     setVal("lockSpec", ""); 
-    setVal("lockHSpec", "CENTRE"); 
     setVal("seriesSpec", ""); 
     setVal("seriesManual", ""); 
     
@@ -647,7 +644,6 @@ function copyWindow(i) {
     setVal("glassSpec", d.glass || ""); 
     setVal("colorSpec", d.color || ""); 
     setVal("lockSpec", d.lock || ""); 
-    setVal("lockHSpec", d.lockPos || "CENTRE"); 
     assignSpecValues(d); 
     setVal("qtySpec", d.qty || "1"); 
     setVal("areaSpec", d.area || ""); 
@@ -669,7 +665,6 @@ function editWindow(i) {
     setVal("glassSpec", d.glass || ""); 
     setVal("colorSpec", d.color || ""); 
     setVal("lockSpec", d.lock || ""); 
-    setVal("lockHSpec", d.lockPos || "CENTRE"); 
     assignSpecValues(d); 
     setVal("qtySpec", d.qty || "1"); 
     setVal("areaSpec", d.area || ""); 
