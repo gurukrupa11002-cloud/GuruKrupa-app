@@ -5,11 +5,41 @@ const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 let currentCloudProjectId = null; 
 
-// --- Authentication Logic ---
+// --- Authentication & Initialization Logic ---
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelector('.app-container').style.display = 'none';
+    loadBranding(); // Fetch custom name/logo
     checkSession();
 });
+
+// --- NEW: Fetch and Apply Global Branding ---
+async function loadBranding() {
+    const { data, error } = await supabaseClient.from('app_settings').select('*').eq('id', 1).single();
+    
+    if (data && !error) {
+        const name = data.company_name;
+        
+        // Update Text Elements
+        if(document.getElementById('pageTitle')) document.getElementById('pageTitle').innerText = `${name} - Premium Engineering Studio`;
+        if(document.getElementById('heroBrandName')) document.getElementById('heroBrandName').innerText = name;
+        if(document.getElementById('navBrandName')) document.getElementById('navBrandName').innerText = name;
+        
+        // Update default welcome text to use the new name
+        const welcomeEl = document.getElementById('welcomeText');
+        if(welcomeEl && welcomeEl.value.includes('SMG Infosolutions')) {
+            welcomeEl.value = welcomeEl.value.replace(/SMG Infosolutions/g, name);
+        }
+
+        // Apply Global Logo if one exists
+        if(data.logo_data) {
+            currentLogoData = data.logo_data; // Sets it globally for canvas/pdf
+            const wl = document.getElementById('welcomeLogo');
+            const hl = document.getElementById('headerLogo');
+            if(wl) { wl.src = data.logo_data; wl.style.display = 'block'; }
+            if(hl) { hl.src = data.logo_data; hl.style.display = 'block'; }
+        }
+    }
+}
 
 function toggleAuthMode(mode) {
     const msg = document.getElementById('authMessage');
@@ -71,7 +101,6 @@ async function checkSession() {
     if (session) {
         document.getElementById('authScreen').style.display = 'none';
         
-        // UPDATE: Fetch subscription_end_date from the database
         const { data: profile } = await supabaseClient
             .from('profiles')
             .select('payment_status, subscription_end_date')
@@ -80,9 +109,9 @@ async function checkSession() {
 
         if (profile && profile.payment_status === 'cleared') {
             
-            // --- NEW: Due Date Expiry Logic ---
+            // --- Due Date Expiry Logic ---
             let today = new Date();
-            today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate day counting
+            today.setHours(0, 0, 0, 0); 
             
             let endDate = profile.subscription_end_date ? new Date(profile.subscription_end_date) : null;
             
@@ -94,9 +123,8 @@ async function checkSession() {
                     document.querySelector('.app-container').style.display = 'none';
                     document.getElementById('paymentScreen').style.display = 'flex';
                     
-                    // Auto-update their status to 'pending' in database so Admin sees it
                     await supabaseClient.from('profiles').update({ payment_status: 'pending' }).eq('id', session.user.id);
-                    return; // Stop execution
+                    return; 
                 }
             }
 
@@ -112,7 +140,6 @@ async function checkSession() {
                 if (diffDays <= 7 && diffDays >= 0) {
                     showExpiryWarning(diffDays, endDate.toLocaleDateString());
                 } else {
-                    // Remove banner if they recently renewed
                     let existingBanner = document.getElementById('expiry-banner');
                     if (existingBanner) existingBanner.remove();
                 }
@@ -128,7 +155,7 @@ async function checkSession() {
         document.querySelector('.app-container').style.display = 'none';
     }
 }
-// --- NEW: Function to show subscription warning banner ---
+
 function showExpiryWarning(daysLeft, dateStr) {
     let existingBanner = document.getElementById('expiry-banner');
     if (!existingBanner) {
@@ -140,8 +167,9 @@ function showExpiryWarning(daysLeft, dateStr) {
     }
     
     let timeText = daysLeft === 0 ? "TODAY" : `in ${daysLeft} days`;
-    existingBanner.innerHTML = `⚠️ <strong>Action Required:</strong> Your SMG Studio subscription expires ${timeText} (${dateStr}). Please arrange payment to avoid service interruption.`;
+    existingBanner.innerHTML = `⚠️ <strong>Action Required:</strong> Your subscription expires ${timeText} (${dateStr}). Please arrange payment to avoid service interruption.`;
 }
+
 async function handleSignUp() {
     const email = document.getElementById('emailInput').value;
     const password = document.getElementById('passwordInput').value;
@@ -159,7 +187,6 @@ async function handleSignUp() {
     msg.style.color = "var(--text-muted)"; 
     msg.innerText = "Creating account...";
     
-    // 1. Create the Auth Login
     const { data, error } = await supabaseClient.auth.signUp({ email, password });
     
     if (error) { 
@@ -167,7 +194,6 @@ async function handleSignUp() {
         msg.innerText = error.message; 
     } else { 
         if(data.user) {
-            // 2. THE FIX: Force an 'upsert' to instantly inject the data into the profiles table
             const { error: profileError } = await supabaseClient.from('profiles').upsert({
                 id: data.user.id,
                 email: email,
@@ -217,7 +243,6 @@ async function saveNewPassword() {
     const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
     if (error) { msg.style.color = "var(--danger)"; msg.innerText = error.message; } else { alert("Password updated successfully! Please log in with your new password."); window.location.reload(); }
 }
-
 
 // --- CLOUD SYNCHRONIZATION LOGIC ---
 async function saveProjectToCloud() {

@@ -5,10 +5,9 @@ const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 document.addEventListener("DOMContentLoaded", () => {
     checkAdminAccess();
-    setupSearch(); // Initialize the search bar listener
+    setupSearch(); 
 });
 
-// --- NEW: Live Search Filter ---
 function setupSearch() {
     const searchInput = document.getElementById('searchInput');
     if(searchInput) {
@@ -19,9 +18,9 @@ function setupSearch() {
             rows.forEach(row => {
                 const textContent = row.innerText.toLowerCase();
                 if (textContent.includes(searchTerm)) {
-                    row.style.display = ''; // Show row
+                    row.style.display = ''; 
                 } else {
-                    row.style.display = 'none'; // Hide row
+                    row.style.display = 'none'; 
                 }
             });
         });
@@ -74,10 +73,11 @@ async function checkAdminAccess() {
 
     document.getElementById('adminAuthScreen').style.display = 'none';
     document.getElementById('adminDashboard').style.display = 'block';
+    
     loadUsers();
+    loadSettings(); // NEW: Fetch global settings on load
 }
 
-// 3. Fetch and Display Users
 async function loadUsers() {
     const { data: profiles, error } = await supabaseClient
         .from('profiles')
@@ -104,7 +104,6 @@ async function loadUsers() {
 
         let dueDateStr = user.subscription_end_date ? new Date(user.subscription_end_date).toLocaleDateString() : '<span style="color:var(--text-muted)">Not Set</span>';
 
-        // NEW: Grab the extra details (with fallbacks just in case you have old test accounts)
         let name = user.full_name || "Unknown Name";
         let phone = user.phone || "No Phone Provided";
         let address = user.address || "No Address Provided";
@@ -133,23 +132,20 @@ async function loadUsers() {
 async function updateStatus(userId, newStatus) {
     let updatePayload = { payment_status: newStatus };
 
-    // If clearing payment, ask for subscription length
     if (newStatus === 'cleared') {
         let duration = prompt("Extend subscription for 1 Month or 1 Year?\nType 'M' for Month, 'Y' for Year.", "M");
         if (duration) {
             let endDate = new Date();
             if (duration.toUpperCase() === 'Y') {
-                endDate.setFullYear(endDate.getFullYear() + 1); // Add 1 Year
+                endDate.setFullYear(endDate.getFullYear() + 1); 
             } else {
-                endDate.setMonth(endDate.getMonth() + 1); // Add 1 Month
+                endDate.setMonth(endDate.getMonth() + 1); 
             }
-            // Format to YYYY-MM-DD for database
             updatePayload.subscription_end_date = endDate.toISOString().split('T')[0]; 
         } else {
-            return; // Cancelled by admin
+            return; 
         }
     } else {
-        // If revoking access, remove the end date
         updatePayload.subscription_end_date = null;
     }
 
@@ -165,7 +161,6 @@ async function updateStatus(userId, newStatus) {
     }
 }
 
-// --- NEW: Delete Profile Function ---
 async function deleteUserProfile(userId) {
     if(confirm("⚠️ Are you sure you want to delete this user's profile data? This will permanently remove them from this list.")) {
         const { error } = await supabaseClient
@@ -177,7 +172,7 @@ async function deleteUserProfile(userId) {
             alert("Error deleting profile: " + error.message);
         } else {
             alert("User profile deleted successfully.\n\nNote: To completely erase their login capabilities, delete their email from the Authentication tab in your Supabase Dashboard.");
-            loadUsers(); // Refresh the table
+            loadUsers(); 
         }
     }
 }
@@ -185,4 +180,36 @@ async function deleteUserProfile(userId) {
 async function adminLogout() {
     await supabaseClient.auth.signOut();
     window.location.reload(); 
+}
+
+// --- NEW: Global Branding Settings Logic ---
+async function loadSettings() {
+    const { data } = await supabaseClient.from('app_settings').select('*').eq('id', 1).single();
+    if (data) {
+        document.getElementById('settingCompanyName').value = data.company_name;
+    }
+}
+
+async function saveSettings() {
+    const newName = document.getElementById('settingCompanyName').value;
+    const fileInput = document.getElementById('settingLogo');
+    const btn = document.querySelector('button[onclick="saveSettings()"]');
+    
+    btn.innerText = "Saving...";
+    let updatePayload = { company_name: newName };
+    
+    if (fileInput.files.length > 0) {
+        let reader = new FileReader();
+        reader.onload = async function(e) {
+            updatePayload.logo_data = e.target.result;
+            await supabaseClient.from('app_settings').update(updatePayload).eq('id', 1);
+            btn.innerText = "Save Branding";
+            alert("Name and Logo updated successfully across the platform!");
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    } else {
+        await supabaseClient.from('app_settings').update(updatePayload).eq('id', 1);
+        btn.innerText = "Save Branding";
+        alert("Company Name updated successfully!");
+    }
 }
