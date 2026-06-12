@@ -451,7 +451,11 @@ function drawIndividual(canvas, d, isP) {
     var ctx = canvas.getContext("2d"); ctx.fillStyle = "white"; ctx.fillRect(0,0, canvas.width, canvas.height); 
     if(d.w <= 0 || d.h <= 0 || d.boxes.length === 0) return;
     
-    let wB = toBase(d.w, d.unit); let hB = toBase(d.h, d.unit); var scale = Math.min((canvas.width-80)/(wB*304.8), (canvas.height/2-80)/(hB*304.8)); var x = 40, y = 80; 
+    let wB = toBase(d.w, d.unit); let hB = toBase(d.h, d.unit); 
+    let availableHeight = isP ? canvas.height : (canvas.height / 2);
+    var scale = Math.min((canvas.width - 80) / (wB * 304.8), (availableHeight - 80) / (hB * 304.8)); 
+    var x = 40, y = isP ? 50 : 80; 
+    
     ctx.strokeStyle = "#0f172a"; ctx.lineWidth = 1.5; ctx.fillStyle = "#0f172a"; ctx.font = "bold 11px Arial"; ctx.textAlign = "center"; let uL = (d.unit==="feet"?" FT":(d.unit==="inch"?"\"":" MM"));
     
     ctx.fillText(d.w.toFixed(2) + uL, x + (wB*304.8*scale)/2, y - 60); ctx.beginPath(); ctx.moveTo(x, y-55); ctx.lineTo(x+(wB*304.8*scale), y-55); ctx.stroke(); drawTick(ctx, x, y-55, false); drawTick(ctx, x+(wB*304.8*scale), y-55, false);
@@ -475,8 +479,35 @@ function drawIndividual(canvas, d, isP) {
 
     if(isP) {
         setVal("areaSpec", area);
+
+        // Render HTML specifications beside the canvas
+        let specEl = document.getElementById("liveSpecsHtml");
+        if (specEl) {
+            let getStatus = (val) => val ? `<span style="color:#0f172a; font-weight: 500;">${String(val).toUpperCase()}</span>` : `<span style="color:#ef4444; font-weight: 600;">PENDING</span>`;
+
+            specEl.innerHTML = `
+                <div style="font-weight: 600; color: var(--brand-dark); margin-bottom: 15px; font-size: 13px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; text-transform: uppercase;">Engineering Specifications</div>
+                <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px; color: var(--text-muted); flex: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;"><b>TAG NO:</b> ${d.tag ? `<span style="color:#4f46e5; font-weight:600; background: #eef2ff; padding: 2px 6px; border-radius: 4px;">${d.tag.toUpperCase()}</span>` : `<span style="color:#ef4444; font-weight: 600;">PENDING</span>`}</div>
+                    <div style="display: flex; justify-content: space-between;"><b>SERIES:</b> ${getStatus(d.series)}</div>
+                    <div style="display: flex; justify-content: space-between;"><b>GLASS:</b> ${getStatus(d.glass)}</div>
+                    <div style="display: flex; justify-content: space-between;"><b>COLOR:</b> ${getStatus(d.color)}</div>
+                    <div style="display: flex; justify-content: space-between;"><b>LOCK:</b> ${getStatus(d.lock)}</div>
+                    <div style="display: flex; justify-content: space-between;"><b>MESH:</b> ${getStatus(d.mesh)}</div>
+                    <div style="display: flex; justify-content: space-between;"><b>QTY:</b> <span style="color:#0f172a; font-weight: 500;">${qty}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><b>AREA (SQ.FT):</b> <span style="color:#0f172a; font-weight: 500;">${area}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><b>RATE/SQ.FT:</b> ${rate > 0 ? `<span style="color:#0f172a; font-weight: 500;">₹ ${rate}</span>` : `<span style="color:#ef4444; font-weight: 600;">PENDING</span>`}</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border-color); margin-top: 15px; padding-top: 15px; font-size: 14px; color: var(--brand-dark);">
+                    <b>TOTAL AMOUNT:</b> ${rate > 0 ? `<span style="color:#16a34a; font-weight:bold;">₹ ${amount}</span>` : `<span style="color:#ef4444; font-weight: 600;">PENDING</span>`}
+                </div>
+                ${d.notes ? `<div style="margin-top: 15px; font-size: 11px; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; color: var(--text-main);"><b>NOTES:</b><br>${d.notes.toUpperCase()}</div>` : ''}
+            `;
+        }
+        return; 
     }
 
+    // === PDF RENDERING CODE (Text drawn ON canvas for exports) ===
     ctx.textAlign="left"; ctx.font="bold 12px Arial"; 
     let sX = 15; let sY = y + hB*304.8*scale + 40; let mW = canvas.width - 30; 
     
@@ -576,6 +607,12 @@ function clearAll() {
     if(pm) pm.innerHTML = `<div class="empty-state"><div class="empty-icon">📏</div>Input dimensions to initialize structural grid</div>`; 
     
     setVal("editIndex", "-1"); 
+
+    let specEl = document.getElementById("liveSpecsHtml");
+    if(specEl) {
+        specEl.innerHTML = `<div class="empty-state" style="margin: auto; border: none; background: transparent;"><div class="empty-icon">📝</div>Waiting for specifications...</div>`;
+    }
+
     drawPreview(); 
 }
 
