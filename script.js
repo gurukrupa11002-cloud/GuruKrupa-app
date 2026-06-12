@@ -451,10 +451,11 @@ function drawIndividual(canvas, d, isP) {
     var ctx = canvas.getContext("2d"); ctx.fillStyle = "white"; ctx.fillRect(0,0, canvas.width, canvas.height); 
     if(d.w <= 0 || d.h <= 0 || d.boxes.length === 0) return;
     
-    let wB = toBase(d.w, d.unit); let hB = toBase(d.h, d.unit); 
+   let wB = toBase(d.w, d.unit); let hB = toBase(d.h, d.unit); 
     let availableHeight = isP ? canvas.height : (canvas.height / 2);
-    var scale = Math.min((canvas.width - 80) / (wB * 304.8), (availableHeight - 80) / (hB * 304.8)); 
-    var x = 40, y = isP ? 50 : 80; 
+    // Increased vertical padding (120) to leave room for both the top width and bottom panel texts
+    var scale = Math.min((canvas.width - 80) / (wB * 304.8), (availableHeight - 120) / (hB * 304.8)); 
+    var x = 40, y = 80; // Keep y at 80 so the top text (80 - 60 = 20) stays fully inside the canvas
     
     ctx.strokeStyle = "#0f172a"; ctx.lineWidth = 1.5; ctx.fillStyle = "#0f172a"; ctx.font = "bold 11px Arial"; ctx.textAlign = "center"; let uL = (d.unit==="feet"?" FT":(d.unit==="inch"?"\"":" MM"));
     
