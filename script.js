@@ -703,7 +703,7 @@ function renderProject() {
                 </div>
             </td>
             <td class="canvas-cell">
-                <canvas id="canvas_print_${i}" width="150" height="150"></canvas>
+                <canvas id="canvas_print_${i}" width="120" height="120"></canvas>
             </td>
             <td>${win.series || '-'}</td>
             <td>${win.color || '-'}</td>
@@ -790,7 +790,7 @@ function drawTableCanvas(canvas, d) {
     if(d.w <= 0 || d.h <= 0 || d.boxes.length === 0) return;
     
     let wB = toBase(d.w, d.unit); let hB = toBase(d.h, d.unit); 
-    let pad = 25; // Padding so dimension numbers fit
+    let pad = 20; // Padding so dimension numbers fit
     var scale = Math.min((canvas.width - pad*2) / (wB * 304.8), (canvas.height - pad*2) / (hB * 304.8)); 
     
     var dW = wB * 304.8 * scale;

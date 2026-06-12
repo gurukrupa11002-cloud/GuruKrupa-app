@@ -715,12 +715,12 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* =========================================
-   STRICT PDF PRINT RENDERING (LANDSCAPE TABLE)
+   STRICT PDF PRINT RENDERING (A4 PORTRAIT)
    ========================================= */
 @media print { 
-    @page { size: landscape; margin: 1cm; }
+    @page { size: A4 portrait; margin: 10mm; }
     body { margin: 0; background: white; padding: 0; overflow: visible; height: auto;}
-    .no-print { display: none !important; } 
+    .no-print, .edit-btn-saved, .del-btn-saved, .copy-btn { display: none !important; } 
     
     #projectSheet { 
         display: block !important;
@@ -733,6 +733,30 @@ input:focus, select:focus, textarea:focus {
         margin: 0 !important;
     } 
 
-    .estimate-table { font-size: 11px !important; }
-    .estimate-table th, .estimate-table td { padding: 4px !important; }
+    .estimate-table { 
+        font-size: 9px !important; /* Scaled down perfectly for 11 portrait columns */
+        width: 100% !important; 
+        min-width: 0 !important; /* Disables the mobile scrolling wrapper during print */
+        table-layout: auto; 
+    }
+    .estimate-table th, .estimate-table td { padding: 4px 2px !important; word-wrap: break-word;}
+    .estimate-table .canvas-cell { width: 80px; height: 80px; padding: 2px !important; }
+    .estimate-table canvas { max-width: 80px !important; max-height: 80px !important; }
+    
+    #printCompanyName { font-size: 18px !important; margin-bottom: 2px !important; }
+    #printCompanyAddress { font-size: 11px !important; }
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS FIXES
+   ========================================= */
+@media (max-width: 500px) {
+    .canvas-wrapper canvas {
+        width: 100% !important;
+        height: auto !important;
+    }
+    #liveSpecsHtml {
+        min-width: 100% !important;
+        margin-top: 15px;
+    }
 }
