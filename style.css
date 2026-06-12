@@ -689,3 +689,50 @@ input:focus, select:focus, textarea:focus {
     table { width: 100%; border-collapse: collapse; }
     thead { display: table-header-group; }
 }
+/* =========================================
+   ESTIMATE TABLE STYLES
+   ========================================= */
+.estimate-table th, .estimate-table td {
+    border: 1px solid #000;
+    padding: 6px;
+    font-size: 12px;
+    vertical-align: middle;
+}
+.estimate-table th {
+    background-color: #f8fafc;
+    font-weight: bold;
+}
+.estimate-table .canvas-cell {
+    width: 150px;
+    height: 150px;
+    padding: 4px;
+}
+.estimate-table canvas {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    margin: 0 auto;
+}
+
+/* =========================================
+   STRICT PDF PRINT RENDERING (LANDSCAPE TABLE)
+   ========================================= */
+@media print { 
+    @page { size: landscape; margin: 1cm; }
+    body { margin: 0; background: white; padding: 0; overflow: visible; height: auto;}
+    .no-print { display: none !important; } 
+    
+    #projectSheet { 
+        display: block !important;
+        width: 100% !important; 
+        max-width: none !important; 
+        padding: 0 !important; 
+        background: white; 
+        box-shadow: none !important; 
+        border: none !important;
+        margin: 0 !important;
+    } 
+
+    .estimate-table { font-size: 11px !important; }
+    .estimate-table th, .estimate-table td { padding: 4px !important; }
+}

@@ -618,30 +618,117 @@ function clearAll() {
 
 function renderProject() {
     let hasW = projectWindows.length > 0;
-    setDisplay("welcomePage", hasW ? "block" : "none"); 
     setDisplay("projectSheet", hasW ? "block" : "none"); 
-    setDisplay("drawingsTable", hasW ? "table" : "none");
     
     setText("printSite", (getVal("siteLoc") || "---").toUpperCase()); 
     setText("printDate", getVal("projDate") || "---"); 
     setText("printClientName", (getVal("clientName") || "---").toUpperCase());
     
-    const wText = getVal("welcomeText");
-    if(wText) setText("printWelcomeLetter", wText.toUpperCase()); 
-    
     const dText = getVal("disclaimerText");
     if(dText) setText("printDisclaimerText", dText.toUpperCase());
     
-    let l = document.getElementById("windowList"); 
-    if(!l) return;
+    let tbody = document.getElementById("estimateTableBody"); 
+    if(!tbody) return;
     
-    l.innerHTML = "";
+    tbody.innerHTML = "";
     projectWindows.forEach((win, i) => {
-        let div = document.createElement("div"); div.className = "drawing-container";
-        div.innerHTML = `<button class="copy-btn" onclick="copyWindow(${i})">COPY</button><button class="edit-btn-saved" onclick="editWindow(${i})">EDIT</button><button class="del-btn-saved" onclick="deleteSaved(${i})">X</button>`;
-        let cvs = document.createElement("canvas"); cvs.width = 346; cvs.height = 650; 
-        div.appendChild(cvs); l.appendChild(div); drawIndividual(cvs, win, false);
+        let tr = document.createElement("tr");
+        
+        let wB = toBase(win.w, win.unit); 
+        let hB = toBase(win.h, win.unit);
+        let qty = parseFloat(win.qty) || 1;
+        let area = (wB * hB * qty).toFixed(2);
+        let rate = parseFloat(win.rate) || 0;
+        let amount = (area * rate).toFixed(2);
+        let unitLabel = win.unit.toUpperCase();
+
+        tr.innerHTML = `
+            <td><b>${i + 1}</b>
+                <div class="no-print" style="margin-top: 10px; display:flex; flex-direction:column; gap:5px; align-items:center;">
+                    <button class="btn btn-micro" style="background:#15803d; color:white; width: 50px;" onclick="copyWindow(${i})">Cpy</button>
+                    <button class="btn btn-micro" style="background:#f59e0b; color:black; width: 50px;" onclick="editWindow(${i})">Edit</button>
+                    <button class="btn btn-micro" style="background:#b91c1c; color:white; width: 50px;" onclick="deleteSaved(${i})">Del</button>
+                </div>
+            </td>
+            <td class="canvas-cell">
+                <canvas id="canvas_print_${i}" width="150" height="150"></canvas>
+            </td>
+            <td><b>${win.tag ? win.tag.toUpperCase() + '<br>' : ''}</b>${win.series || '-'}</td>
+            <td>${win.color || '-'}</td>
+            <td>${win.glass || '-'}</td>
+            <td>${win.w} ${unitLabel}</td>
+            <td>${win.h} ${unitLabel}</td>
+            <td>${qty}</td>
+            <td>${area}</td>
+            <td>${rate > 0 ? rate : '-'}</td>
+            <td>${rate > 0 ? amount : '-'}</td>
+        `;
+        tbody.appendChild(tr);
+        
+        // Draw the mini canvas inside the table cell
+        let cvs = document.getElementById(`canvas_print_${i}`);
+        drawTableCanvas(cvs, win);
     }); 
+}
+function drawTableCanvas(canvas, d) {
+    var ctx = canvas.getContext("2d"); 
+    ctx.fillStyle = "white"; 
+    ctx.fillRect(0,0, canvas.width, canvas.height); 
+    if(d.w <= 0 || d.h <= 0 || d.boxes.length === 0) return;
+    
+    let wB = toBase(d.w, d.unit); let hB = toBase(d.h, d.unit); 
+    let pad = 25; // Padding so dimension numbers fit
+    var scale = Math.min((canvas.width - pad*2) / (wB * 304.8), (canvas.height - pad*2) / (hB * 304.8)); 
+    
+    var dW = wB * 304.8 * scale;
+    var dH = hB * 304.8 * scale;
+    
+    // Center it inside the cell canvas
+    var x = (canvas.width - dW) / 2 + 5; 
+    var y = (canvas.height - dH) / 2 + 10;
+    
+    ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.fillStyle = "#000"; ctx.font = "10px Arial"; ctx.textAlign = "center"; 
+    
+    // Top Dimensions
+    ctx.fillText(d.w, x + dW/2, y - 8); 
+    ctx.beginPath(); ctx.moveTo(x, y-5); ctx.lineTo(x+dW, y-5); ctx.stroke(); 
+    drawTick(ctx, x, y-5, false); drawTick(ctx, x+dW, y-5, false);
+    
+    // Left Dimensions
+    ctx.save(); ctx.translate(x-12, y+dH/2); ctx.rotate(-Math.PI/2); ctx.fillText(d.h,0,0); ctx.restore(); 
+    ctx.beginPath(); ctx.moveTo(x-5, y); ctx.lineTo(x-5, y+dH); ctx.stroke(); 
+    drawTick(ctx, x-5, y, true); drawTick(ctx, x-5, y+dH, true);
+    
+    // Draw the structural boxes
+    d.boxes.forEach(b => {
+        let bx = x+b.x*304.8*scale, by = y+b.y*304.8*scale, bw = b.w*304.8*scale, bh = b.h*304.8*scale; 
+        ctx.strokeRect(bx, by, bw, bh); 
+        let p = parseInt(b.p) || 1, pw = bw/p;
+        
+        for(let j=0; j<p; j++) { 
+            let pX = bx + j*pw; let gb = b.gBars[j] || {h:0, v:0}; 
+            ctx.lineWidth = 0.5; ctx.strokeStyle = "#555"; 
+            if(gb.h > 0) { for(let k=1; k<=gb.h; k++){ let gy = by+(bh/(gb.h+1))*k; ctx.beginPath(); ctx.moveTo(pX,gy); ctx.lineTo(pX+pw,gy); ctx.stroke(); } } 
+            if(gb.v > 0) { for(let k=1; k<=gb.v; k++){ let gx = pX+(pw/(gb.v+1))*k; ctx.beginPath(); ctx.moveTo(gx,by); ctx.lineTo(gx,by+bh); ctx.stroke(); } } 
+        } 
+        
+        ctx.lineWidth = 1; ctx.strokeStyle = "#000"; 
+        if (b.type === 'sliding' || b.type === 'fixed') { 
+            for(let i=1; i<p; i++){ ctx.beginPath(); ctx.moveTo(bx+pw*i, by); ctx.lineTo(bx+pw*i, by+bh); ctx.stroke(); } 
+        }
+        
+        if (b.type === 'door') { 
+            ctx.setLineDash([3, 3]); ctx.beginPath(); 
+            if(b.doorType === 'double') { let gap = 5; let pW = (bw - gap) / 2; ctx.moveTo(bx, by); ctx.lineTo(bx+pW, by+bh/2); ctx.lineTo(bx, by+bh); ctx.moveTo(bx+bw, by); ctx.lineTo(bx+bw-pW, by+bh/2); ctx.lineTo(bx+bw, by+bh); } 
+            else if(b.doorType === '1L') { ctx.moveTo(bx, by); ctx.lineTo(bx+bw, by+bh/2); ctx.lineTo(bx, by+bh); } 
+            else if(b.doorType === '1R') { ctx.moveTo(bx+bw, by); ctx.lineTo(bx, by+bh/2); ctx.lineTo(bx+bw, by+bh); } 
+            else if(b.doorType === 'tophung') { ctx.moveTo(bx, by); ctx.lineTo(bx+bw/2, by+bh); ctx.lineTo(bx+bw, by); } 
+            ctx.stroke(); ctx.setLineDash([]); 
+        } else if (b.type === 'fan') { 
+            let r = Math.min(bw, bh)*0.3; ctx.beginPath(); ctx.arc(bx+bw/2, by+bh/2, r, 0, 2*Math.PI); ctx.stroke(); 
+            ctx.moveTo(bx+bw/2-r*0.7, by+bh/2-r*0.7); ctx.lineTo(bx+bw/2+r*0.7, by+bh/2+r*0.7); ctx.moveTo(bx+bw/2+r*0.7, by+bh/2-r*0.7); ctx.lineTo(bx+bw/2-r*0.7, by+bh/2+r*0.7); ctx.stroke(); 
+        }
+    });
 }
 
 function deleteSaved(idx) { if(confirm("DELETE?")) { projectWindows.splice(idx,1); renderProject(); } }

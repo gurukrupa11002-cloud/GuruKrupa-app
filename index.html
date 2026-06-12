@@ -309,55 +309,43 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
     </div>
 
     <!-- Print Canvas System -->
-    <div id="projectSheet" style="display:none;">
-        <div style="text-align: center; color: var(--brand-dark); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;"
-            class="no-print">
-            📄 Generated Project Documents
-        </div>
+    <div id="projectSheet" style="display:none; background: #fff; padding: 20px; border-top: 5px solid var(--accent-primary); margin: 20px auto; max-width: 1200px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        
+        <h2 style="text-align: left; margin: 0 0 10px 0; border-bottom: 2px solid #000; padding-bottom: 5px; font-size: 22px; color: #000;">Estimate For Aluminium & Glass Work</h2>
+        
+        <table style="width: 100%; margin-bottom: 15px; font-size: 14px; text-align: left; color: #000;">
+            <tr>
+                <td style="width: 30%; padding: 4px 0;"><b>Date:</b> <span id="printDate">---</span></td>
+                <td style="width: 70%; padding: 4px 0;"><b>Address:</b> <span id="printSite">---</span></td>
+            </tr>
+            <tr>
+                <td colspan="2" style="padding: 4px 0;"><b>Client:</b> <span id="printClientName">---</span></td>
+            </tr>
+        </table>
 
-        <div id="welcomePage" class="welcome-box">
-            <div class="welcome-logo-wrapper"><img id="welcomeLogo" src="logo.png" alt="Logo" class="header-logo"
-                    onerror="this.style.display='none'"></div>
-            <div class="project-info-block">
-                <table class="meta-table">
-                    <tr>
-                        <td><b>CLIENT:</b></td>
-                        <td id="printClientName">---</td>
-                    </tr>
-                    <tr>
-                        <td><b>SITE:</b></td>
-                        <td id="printSite">---</td>
-                    </tr>
-                    <tr>
-                        <td><b>DATE:</b></td>
-                        <td id="printDate">---</td>
-                    </tr>
-                </table>
-            </div>
-            <h1 class="document-title">PROPOSAL & DRAWINGS</h1>
-            <p id="printWelcomeLetter" class="welcome-letter-text"></p>
-            <div id="disclaimerArea" class="disclaimer-box"><b>DISCLAIMER:</b> <span id="printDisclaimerText"></span>
-            </div>
-        </div>
-
-        <table id="drawingsTable"
-            style="display:none; width: 100%; max-width: 1080px; margin: 0 auto; background: transparent;">
+        <table class="estimate-table" style="width: 100%; border-collapse: collapse; text-align: center; border: 1px solid #000; color: #000;">
             <thead>
                 <tr>
-                    <td>
-                        <div id="headerDisplay" class="project-header"><img id="headerLogo" src="logo.png" alt="Logo"
-                                class="header-logo" onerror="this.style.display='none'"></div>
-                    </td>
+                    <th>Sr.<br>No.</th>
+                    <th>Drawings</th>
+                    <th>Description</th>
+                    <th>Surface<br>Finish</th>
+                    <th>Glass<br>Proposed</th>
+                    <th>Width</th>
+                    <th>Height</th>
+                    <th>Qty.</th>
+                    <th>Total<br>Area<br>(sq.ft.)</th>
+                    <th>Rate /<br>sq.ft.</th>
+                    <th>Amt.</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <div id="windowList" class="window-list-container"></div>
-                    </td>
-                </tr>
-            </tbody>
+            <tbody id="estimateTableBody">
+                </tbody>
         </table>
+
+        <div class="disclaimer-box" style="margin-top: 20px; text-align: left; font-size: 12px; border: 1px solid #000; padding: 10px; color: #000;">
+            <b>DISCLAIMER:</b> <span id="printDisclaimerText"></span>
+        </div>
     </div>
 
 </body>
