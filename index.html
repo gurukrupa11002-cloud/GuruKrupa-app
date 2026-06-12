@@ -180,10 +180,27 @@ Subject: Moving forward with your SMG Infosolutions Pvt. Ltd. project
 We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ourselves on quality and efficiency. Attached are the technical line drawings for your review. Please verify all specifications to align with your project requirements.</textarea>
                     </div>
 
+                    <div class="card-section highlight-section">
+                        <label class="accent-label">Additional Costs (Estimate Summary)</label>
+                        <div class="size-input-row">
+                            <div class="input-mini-flex"><span class="addon">Glass Work ₹</span><input type="number" id="glassWorkAmount" placeholder="0.00" oninput="renderProject()"></div>
+                            <div class="input-mini-flex"><span class="addon">Freight ₹</span><input type="number" id="freightAmount" placeholder="0.00" oninput="renderProject()"></div>
+                        </div>
+                    </div>
+
                     <div class="card-section">
-                        <label>Disclaimer</label>
-                        <textarea id="disclaimerText" rows="2"
-                            oninput="renderProject()">THIS DRAWING IS FOR REFERENCE ONLY. ACTUAL PRODUCT PROPORTIONS MAY VARY. APPROVED DRAWINGS ARE CONSIDERED FINAL. FACTORY CONTACT: 9320307644.</textarea>
+                        <label>Payment Terms</label>
+                        <textarea id="paymentTermsText" rows="3" oninput="renderProject()">■ 130000/- Advance while order confirmation
+■ 110000/- before dispatch of material from our factory
+■ 5929/- after completion of work at site.</textarea>
+                    </div>
+
+                    <div class="card-section">
+                        <label>Note & Conditions</label>
+                        <textarea id="projectNotesText" rows="5" oninput="renderProject()"># All taxes shall be charged extra.
+■ VAT @ 13.13% on supply of aluminium doors & windows
+■ Service Tax 12.36% shall be charged on installation of doors & windows
+# EPDM RUBBER shall be used.</textarea>
                     </div>
 
                     <div class="card-section highlight-section">
@@ -343,8 +360,13 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
                 </tbody>
         </table>
 
-        <div class="disclaimer-box" style="margin-top: 20px; text-align: left; font-size: 12px; border: 1px solid #000; padding: 10px; color: #000;">
-            <b>DISCLAIMER:</b> <span id="printDisclaimerText"></span>
+        <div style="border: 1px solid #000; border-top: none; padding: 6px 10px; color: #000; font-size: 12px;">
+            <div style="font-weight: bold; text-decoration: underline; margin-bottom: 5px; text-transform: uppercase;">PAYMENT TERMS OF ALUMINIUM DOORS & WINDOWS</div>
+            <div id="printPaymentTerms" style="white-space: pre-wrap; line-height: 1.6; font-weight: bold; margin-bottom: 5px;"></div>
+        </div>
+        <div style="border: 1px solid #000; border-top: none; padding: 6px 10px; color: #000; font-size: 12px;">
+            <div style="font-weight: bold; text-decoration: underline; margin-bottom: 5px; text-transform: uppercase;">NOTE :</div>
+            <div id="printProjectNotes" style="white-space: pre-wrap; line-height: 1.6; font-weight: bold;"></div>
         </div>
     </div>
 

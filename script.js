@@ -624,13 +624,15 @@ function renderProject() {
     setText("printDate", getVal("projDate") || "---"); 
     setText("printClientName", (getVal("clientName") || "---").toUpperCase());
     
-    const dText = getVal("disclaimerText");
-    if(dText) setText("printDisclaimerText", dText.toUpperCase());
-    
     let tbody = document.getElementById("estimateTableBody"); 
     if(!tbody) return;
     
     tbody.innerHTML = "";
+    
+    // Variables for Grand Totals
+    let totalQty = 0;
+    let totalAmt = 0;
+
     projectWindows.forEach((win, i) => {
         let tr = document.createElement("tr");
         
@@ -641,6 +643,10 @@ function renderProject() {
         let rate = parseFloat(win.rate) || 0;
         let amount = (area * rate).toFixed(2);
         let unitLabel = win.unit.toUpperCase();
+
+        // Accumulate totals
+        totalQty += qty;
+        totalAmt += parseFloat(amount);
 
         tr.innerHTML = `
             <td><b>${i + 1}</b>
@@ -665,10 +671,59 @@ function renderProject() {
         `;
         tbody.appendChild(tr);
         
-        // Draw the mini canvas inside the table cell
+        // Draw the mini canvas
         let cvs = document.getElementById(`canvas_print_${i}`);
         drawTableCanvas(cvs, win);
     }); 
+
+    // --- APPEND SUMMARY ROWS ---
+    let glassAmt = parseFloat(getVal("glassWorkAmount")) || 0;
+    let freightAmt = parseFloat(getVal("freightAmount")) || 0;
+    let grandTotal = totalAmt + glassAmt + freightAmt;
+
+    if (totalAmt > 0 || totalQty > 0) {
+        let tfootHtml = `
+            <tr style="font-weight: bold; border-top: 2px solid #000;">
+                <td colspan="7" style="text-align: center;">Total</td>
+                <td>${totalQty}</td>
+                <td colspan="2"></td>
+                <td>${totalAmt.toFixed(0)}</td>
+            </tr>
+        `;
+
+        if (glassAmt > 0) {
+            tfootHtml += `
+            <tr style="font-weight: bold;">
+                <td colspan="10" style="text-align: left; padding-left: 10px;">Amount of Estimate for Glass Work</td>
+                <td>${glassAmt.toFixed(0)}</td>
+            </tr>`;
+        }
+
+        if (freightAmt > 0) {
+            tfootHtml += `
+            <tr style="font-weight: bold;">
+                <td colspan="10" style="text-align: left; padding-left: 10px;">Freight</td>
+                <td>${freightAmt.toFixed(0)}</td>
+            </tr>`;
+        }
+
+        if (glassAmt > 0 || freightAmt > 0) {
+            tfootHtml += `
+            <tr style="font-weight: bold; border-top: 2px solid #000; border-bottom: 2px solid #000;">
+                <td colspan="10" style="text-align: center;">Total</td>
+                <td>${grandTotal.toFixed(0)}</td>
+            </tr>`;
+        }
+
+        tbody.insertAdjacentHTML('beforeend', tfootHtml);
+    }
+
+    // MAP TERMS & NOTES TEXT
+    const pTerms = getVal("paymentTermsText");
+    if(document.getElementById("printPaymentTerms")) setText("printPaymentTerms", pTerms);
+    
+    const pNotes = getVal("projectNotesText");
+    if(document.getElementById("printProjectNotes")) setText("printProjectNotes", pNotes);
 }
 function drawTableCanvas(canvas, d) {
     var ctx = canvas.getContext("2d"); 
