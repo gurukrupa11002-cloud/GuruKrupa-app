@@ -29,6 +29,7 @@ async function loadBranding() {
         if(document.getElementById('pageTitle')) document.getElementById('pageTitle').innerText = `${name} - Premium Engineering Studio`;
         if(document.getElementById('heroBrandName')) document.getElementById('heroBrandName').innerText = name;
         if(document.getElementById('navBrandName')) document.getElementById('navBrandName').innerText = name;
+        if(document.getElementById('companyName')) document.getElementById('companyName').value = name;
         
         const welcomeEl = document.getElementById('welcomeText');
         if(welcomeEl && welcomeEl.value.includes('SMG Infosolutions')) {
@@ -38,10 +39,8 @@ async function loadBranding() {
         if(data.logo_data) {
             currentLogoData = data.logo_data; 
             
-            const wl = document.getElementById('welcomeLogo');
-            const hl = document.getElementById('headerLogo');
-            if(wl) { wl.src = data.logo_data; wl.style.display = 'block'; }
-            if(hl) { hl.src = data.logo_data; hl.style.display = 'block'; }
+            const pl = document.getElementById('printLogo');
+            if(pl) { pl.src = data.logo_data; pl.style.display = 'block'; }
 
             const topBarIcon = document.querySelector('.top-bar .brand-icon');
             if (topBarIcon) {
@@ -361,10 +360,8 @@ function handleLogoUpload(event) {
     let reader = new FileReader();
     reader.onload = function(e) { 
         currentLogoData = e.target.result; 
-        const wl = document.getElementById('welcomeLogo');
-        const hl = document.getElementById('headerLogo');
-        if(wl) { wl.src = currentLogoData; wl.style.display = 'block'; }
-        if(hl) { hl.src = currentLogoData; hl.style.display = 'block'; }
+        const pl = document.getElementById('printLogo');
+        if(pl) { pl.src = currentLogoData; pl.style.display = 'block'; }
         renderProject(); 
     }
     if(event.target.files.length > 0) reader.readAsDataURL(event.target.files[0]);
@@ -451,11 +448,11 @@ function drawIndividual(canvas, d, isP) {
     var ctx = canvas.getContext("2d"); ctx.fillStyle = "white"; ctx.fillRect(0,0, canvas.width, canvas.height); 
     if(d.w <= 0 || d.h <= 0 || d.boxes.length === 0) return;
     
-   let wB = toBase(d.w, d.unit); let hB = toBase(d.h, d.unit); 
+    let wB = toBase(d.w, d.unit); let hB = toBase(d.h, d.unit); 
     let availableHeight = isP ? canvas.height : (canvas.height / 2);
-    // Increased vertical padding (120) to leave room for both the top width and bottom panel texts
+    // Adjusted padding and fixed y=80 to keep the top dimension from getting cut off
     var scale = Math.min((canvas.width - 80) / (wB * 304.8), (availableHeight - 120) / (hB * 304.8)); 
-    var x = 40, y = 80; // Keep y at 80 so the top text (80 - 60 = 20) stays fully inside the canvas
+    var x = 40, y = 80; 
     
     ctx.strokeStyle = "#0f172a"; ctx.lineWidth = 1.5; ctx.fillStyle = "#0f172a"; ctx.font = "bold 11px Arial"; ctx.textAlign = "center"; let uL = (d.unit==="feet"?" FT":(d.unit==="inch"?"\"":" MM"));
     
@@ -508,7 +505,7 @@ function drawIndividual(canvas, d, isP) {
         return; 
     }
 
-    // === PDF RENDERING CODE (Text drawn ON canvas for exports) ===
+    // PDF Text rendering fallback (Legacy)
     ctx.textAlign="left"; ctx.font="bold 12px Arial"; 
     let sX = 15; let sY = y + hB*304.8*scale + 40; let mW = canvas.width - 30; 
     
@@ -621,6 +618,11 @@ function renderProject() {
     let hasW = projectWindows.length > 0;
     setDisplay("projectSheet", hasW ? "block" : "none"); 
     
+    // Map new company details
+    setText("printCompanyName", (getVal("companyName") || "---").toUpperCase()); 
+    setText("printCompanyAddress", (getVal("companyAddress") || "---").toUpperCase()); 
+    
+    // Map existing client details
     setText("printSite", (getVal("siteLoc") || "---").toUpperCase()); 
     setText("printDate", getVal("projDate") || "---"); 
     setText("printClientName", (getVal("clientName") || "---").toUpperCase());
@@ -649,8 +651,11 @@ function renderProject() {
         totalQty += qty;
         totalAmt += parseFloat(amount);
 
+        // Put Tag No. in the first column, fallback to the row number if empty
+        let displayTag = win.tag ? win.tag.toUpperCase() : (i + 1);
+
         tr.innerHTML = `
-            <td><b>${i + 1}</b>
+            <td><b>${displayTag}</b>
                 <div class="no-print" style="margin-top: 10px; display:flex; flex-direction:column; gap:5px; align-items:center;">
                     <button class="btn btn-micro" style="background:#15803d; color:white; width: 50px;" onclick="copyWindow(${i})">Cpy</button>
                     <button class="btn btn-micro" style="background:#f59e0b; color:black; width: 50px;" onclick="editWindow(${i})">Edit</button>
@@ -660,7 +665,7 @@ function renderProject() {
             <td class="canvas-cell">
                 <canvas id="canvas_print_${i}" width="150" height="150"></canvas>
             </td>
-            <td><b>${win.tag ? win.tag.toUpperCase() + '<br>' : ''}</b>${win.series || '-'}</td>
+            <td>${win.series || '-'}</td>
             <td>${win.color || '-'}</td>
             <td>${win.glass || '-'}</td>
             <td>${win.w} ${unitLabel}</td>
@@ -672,7 +677,7 @@ function renderProject() {
         `;
         tbody.appendChild(tr);
         
-        // Draw the mini canvas
+        // Draw the mini canvas inside the table cell
         let cvs = document.getElementById(`canvas_print_${i}`);
         drawTableCanvas(cvs, win);
     }); 
@@ -726,6 +731,7 @@ function renderProject() {
     const pNotes = getVal("projectNotesText");
     if(document.getElementById("printProjectNotes")) setText("printProjectNotes", pNotes);
 }
+
 function drawTableCanvas(canvas, d) {
     var ctx = canvas.getContext("2d"); 
     ctx.fillStyle = "white"; 

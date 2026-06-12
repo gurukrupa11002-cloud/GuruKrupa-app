@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">SMG Infosolutions - Premium Engineering Studio</title>
+    <title id="pageTitle">Guru Krupa - Premium Engineering Studio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
@@ -19,7 +19,7 @@
         <div class="auth-banner">
             <div class="auth-banner-content">
                 <div class="brand-icon-large">🛡️</div>
-                <h1 id="heroBrandName">SMG Infosolutions</h1>
+                <h1 id="heroBrandName">Guru Krupa</h1>
                 <p>Enterprise Quotation & Drawing Studio</p>
                 <div class="auth-feature-list">
                     <div class="feature-item"><span>✔️</span> Precision Engineering Drafts</div>
@@ -121,7 +121,7 @@
         <div
             style="background: white; padding: 30px; border-radius: var(--radius-lg); width: 90%; max-width: 600px; max-height: 80vh; display: flex; flex-direction: column; box-sizing: border-box;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0; color: var(--brand-dark);">☁️ Your Cloud Projects</h2>
+                <h2 style="margin: 0; color: var(--brand-dark);">Your Cloud Projects</h2>
                 <button class="btn btn-glass" style="color: var(--text-muted); border-color: var(--border-color);"
                     onclick="document.getElementById('cloudBrowser').style.display='none'">Close</button>
             </div>
@@ -137,7 +137,7 @@
             <div class="brand">
                 <div class="brand-icon">📐</div>
                 <div>
-                    <h1 id="navBrandName">SMG Infosolutions</h1>
+                    <h1 id="navBrandName">Guru Krupa</h1>
                     <span class="badge">Cloud Quotation Studio</span>
                 </div>
             </div>
@@ -162,6 +162,17 @@
                     <input type="file" id="logoInput" class="hidden" accept="image/*"
                         onchange="handleLogoUpload(event)">
 
+                    <!-- NEW COMPANY DETAILS SECTION -->
+                    <div class="card-section" style="margin-top: 15px;">
+                        <label>Company Details (Your Firm)</label>
+                        <div class="input-stack">
+                            <input type="text" id="companyName" placeholder="Company Name (e.g., Guru Krupa)"
+                                oninput="renderProject()">
+                            <input type="text" id="companyAddress" placeholder="Company Address / Contact Info"
+                                oninput="renderProject()">
+                        </div>
+                    </div>
+
                     <div class="card-section">
                         <label>Client & Site Details</label>
                         <div class="input-stack">
@@ -174,17 +185,19 @@
                     <div class="card-section">
                         <label>Welcome Letter</label>
                         <textarea id="welcomeText" rows="4"
-                            oninput="renderProject()">Project Commencement: Welcome to SMG Infosolutions Pvt. Ltd.
-Subject: Moving forward with your SMG Infosolutions Pvt. Ltd. project
+                            oninput="renderProject()">Project Commencement: Welcome to Guru Krupa Pvt. Ltd.
+Subject: Moving forward with your Guru Krupa Pvt. Ltd. project
 
-We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ourselves on quality and efficiency. Attached are the technical line drawings for your review. Please verify all specifications to align with your project requirements.</textarea>
+We are thrilled to partner with you! At Guru Krupa Pvt. Ltd., we pride ourselves on quality and efficiency. Attached are the technical line drawings for your review. Please verify all specifications to align with your project requirements.</textarea>
                     </div>
 
                     <div class="card-section highlight-section">
                         <label class="accent-label">Additional Costs (Estimate Summary)</label>
                         <div class="size-input-row">
-                            <div class="input-mini-flex"><span class="addon">Glass Work ₹</span><input type="number" id="glassWorkAmount" placeholder="0.00" oninput="renderProject()"></div>
-                            <div class="input-mini-flex"><span class="addon">Freight ₹</span><input type="number" id="freightAmount" placeholder="0.00" oninput="renderProject()"></div>
+                            <div class="input-mini-flex"><span class="addon">Glass Work ₹</span><input type="number"
+                                    id="glassWorkAmount" placeholder="0.00" oninput="renderProject()"></div>
+                            <div class="input-mini-flex"><span class="addon">Freight ₹</span><input type="number"
+                                    id="freightAmount" placeholder="0.00" oninput="renderProject()"></div>
                         </div>
                     </div>
 
@@ -326,24 +339,44 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
     </div>
 
     <!-- Print Canvas System -->
-    <div id="projectSheet" style="display:none; background: #fff; padding: 20px; border-top: 5px solid var(--accent-primary); margin: 20px auto; max-width: 1200px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
-        
-        <h2 style="text-align: left; margin: 0 0 10px 0; border-bottom: 2px solid #000; padding-bottom: 5px; font-size: 22px; color: #000;">Estimate For Aluminium & Glass Work</h2>
-        
+    <!-- Print Canvas System (Table Format) -->
+    <div id="projectSheet"
+        style="display:none; background: #fff; padding: 20px; border-top: 5px solid var(--accent-primary); margin: 20px auto; max-width: 1200px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+
+        <!-- HEADER: Company Details & Logo -->
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 15px;">
+            <div style="flex: 1;">
+                <h1 id="printCompanyName"
+                    style="margin: 0 0 5px 0; font-size: 24px; color: #000; text-transform: uppercase;">YOUR COMPANY
+                </h1>
+                <div id="printCompanyAddress" style="font-size: 13px; color: #000; white-space: pre-wrap;"></div>
+            </div>
+            <div>
+                <img id="printLogo" src="" alt="Logo" style="max-height: 70px; display: none; object-fit: contain;">
+            </div>
+        </div>
+
+        <h2
+            style="text-align: center; margin: 0 0 15px 0; font-size: 20px; color: #000; text-decoration: underline; text-transform: uppercase;">
+            Estimate For Aluminium & Glass Work</h2>
+
+        <!-- CLIENT DETAILS -->
         <table style="width: 100%; margin-bottom: 15px; font-size: 14px; text-align: left; color: #000;">
             <tr>
-                <td style="width: 30%; padding: 4px 0;"><b>Date:</b> <span id="printDate">---</span></td>
-                <td style="width: 70%; padding: 4px 0;"><b>Address:</b> <span id="printSite">---</span></td>
+                <td style="width: 50%; padding: 4px 0;"><b>Client:</b> <span id="printClientName">---</span></td>
+                <td style="width: 50%; padding: 4px 0;"><b>Date:</b> <span id="printDate">---</span></td>
             </tr>
             <tr>
-                <td colspan="2" style="padding: 4px 0;"><b>Client:</b> <span id="printClientName">---</span></td>
+                <td colspan="2" style="padding: 4px 0;"><b>Site Address:</b> <span id="printSite">---</span></td>
             </tr>
         </table>
 
-        <table class="estimate-table" style="width: 100%; border-collapse: collapse; text-align: center; border: 1px solid #000; color: #000;">
+        <table class="estimate-table"
+            style="width: 100%; border-collapse: collapse; text-align: center; border: 1px solid #000; color: #000;">
             <thead>
                 <tr>
-                    <th>Sr.<br>No.</th>
+                    <th>Tag /<br>Sr. No.</th>
                     <th>Drawings</th>
                     <th>Description</th>
                     <th>Surface<br>Finish</th>
@@ -357,15 +390,18 @@ We are thrilled to partner with you! At SMG Infosolutions Pvt. Ltd., we pride ou
                 </tr>
             </thead>
             <tbody id="estimateTableBody">
-                </tbody>
+            </tbody>
         </table>
 
         <div style="border: 1px solid #000; border-top: none; padding: 6px 10px; color: #000; font-size: 12px;">
-            <div style="font-weight: bold; text-decoration: underline; margin-bottom: 5px; text-transform: uppercase;">PAYMENT TERMS OF ALUMINIUM DOORS & WINDOWS</div>
-            <div id="printPaymentTerms" style="white-space: pre-wrap; line-height: 1.6; font-weight: bold; margin-bottom: 5px;"></div>
+            <div style="font-weight: bold; text-decoration: underline; margin-bottom: 5px; text-transform: uppercase;">
+                PAYMENT TERMS OF ALUMINIUM DOORS & WINDOWS</div>
+            <div id="printPaymentTerms"
+                style="white-space: pre-wrap; line-height: 1.6; font-weight: bold; margin-bottom: 5px;"></div>
         </div>
         <div style="border: 1px solid #000; border-top: none; padding: 6px 10px; color: #000; font-size: 12px;">
-            <div style="font-weight: bold; text-decoration: underline; margin-bottom: 5px; text-transform: uppercase;">NOTE :</div>
+            <div style="font-weight: bold; text-decoration: underline; margin-bottom: 5px; text-transform: uppercase;">
+                NOTE :</div>
             <div id="printProjectNotes" style="white-space: pre-wrap; line-height: 1.6; font-weight: bold;"></div>
         </div>
     </div>
