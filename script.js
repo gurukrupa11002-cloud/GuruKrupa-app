@@ -450,7 +450,6 @@ function drawIndividual(canvas, d, isP) {
     
     let wB = toBase(d.w, d.unit); let hB = toBase(d.h, d.unit); 
     let availableHeight = isP ? canvas.height : (canvas.height / 2);
-    // Adjusted padding and fixed y=80 to keep the top dimension from getting cut off
     var scale = Math.min((canvas.width - 80) / (wB * 304.8), (availableHeight - 120) / (hB * 304.8)); 
     var x = 40, y = 80; 
     
@@ -466,7 +465,48 @@ function drawIndividual(canvas, d, isP) {
     d.boxes.forEach(b => {
         let bx = x+b.x*304.8*scale, by = y+b.y*304.8*scale, bw = b.w*304.8*scale, bh = b.h*304.8*scale; ctx.strokeRect(bx, by, bw, bh); let p = parseInt(b.p) || 1, pw = bw/p;
         for(let j=0; j<p; j++) { let pX = bx + j*pw; let gb = b.gBars[j] || {h:0, v:0}; ctx.lineWidth = 0.5; ctx.strokeStyle = "#64748b"; if(gb.h > 0) { for(let k=1; k<=gb.h; k++){ let gy = by+(bh/(gb.h+1))*k; ctx.beginPath(); ctx.moveTo(pX,gy); ctx.lineTo(pX+pw,gy); ctx.stroke(); } } if(gb.v > 0) { for(let k=1; k<=gb.v; k++){ let gx = pX+(pw/(gb.v+1))*k; ctx.beginPath(); ctx.moveTo(gx,by); ctx.lineTo(gx,by+bh); ctx.stroke(); } } } 
-        ctx.lineWidth = 1.5; ctx.strokeStyle = "#0f172a"; if (b.type === 'sliding' || b.type === 'fixed') { for(let i=1; i<p; i++){ ctx.beginPath(); ctx.moveTo(bx+pw*i, by); ctx.lineTo(bx+pw*i, by+bh); ctx.stroke(); } if (p > 1) { for(let j=0; j<p; j++) ctx.fillText(fromBase(b.w/p, d.unit).toFixed(2)+uL, bx+pw*j+pw/2, by+bh+15); } }
+        
+        ctx.lineWidth = 1.5; ctx.strokeStyle = "#0f172a"; 
+        if (b.type === 'sliding' || b.type === 'fixed') { 
+            for(let i=1; i<p; i++){ ctx.beginPath(); ctx.moveTo(bx+pw*i, by); ctx.lineTo(bx+pw*i, by+bh); ctx.stroke(); } 
+            if (p > 1) { 
+                for(let j=0; j<p; j++) ctx.fillText(fromBase(b.w/p, d.unit).toFixed(2)+uL, bx+pw*j+pw/2, by+bh+15); 
+                
+                // Draw Sliding Direction Arrows
+                if (b.type === 'sliding') {
+                    for (let j = 0; j < p; j++) {
+                        let cx = bx + j * pw + pw / 2;
+                        let cy = by + bh / 2;
+                        let dir = (j < p / 2) ? 1 : -1;
+                        if (p % 2 !== 0 && j === Math.floor(p / 2)) dir = 1; // Middle panel default direction
+                        
+                        let aLen = Math.min(pw * 0.4, 30);
+                        let aH = 4;
+                        let hS = 10;
+                        
+                        let sX = cx - dir * (aLen / 2);
+                        let eX = cx + dir * (aLen / 2);
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(sX, cy - aH);
+                        ctx.lineTo(eX - dir * hS, cy - aH);
+                        ctx.lineTo(eX - dir * hS, cy - aH * 2);
+                        ctx.lineTo(eX, cy);
+                        ctx.lineTo(eX - dir * hS, cy + aH * 2);
+                        ctx.lineTo(eX - dir * hS, cy + aH);
+                        ctx.lineTo(sX, cy + aH);
+                        ctx.closePath();
+                        
+                        let oldFill = ctx.fillStyle;
+                        ctx.fillStyle = "white";
+                        ctx.fill();
+                        ctx.fillStyle = oldFill;
+                        ctx.stroke();
+                    }
+                }
+            } 
+        }
+
         if (b.type === 'door') { ctx.setLineDash([5, 5]); ctx.beginPath(); if(b.doorType === 'double') { let gap = 10; let pW = (bw - gap) / 2; ctx.moveTo(bx, by); ctx.lineTo(bx+pW, by+bh/2); ctx.lineTo(bx, by+bh); ctx.moveTo(bx+bw, by); ctx.lineTo(bx+bw-pW, by+bh/2); ctx.lineTo(bx+bw, by+bh); } else if(b.doorType === '1L') { ctx.moveTo(bx, by); ctx.lineTo(bx+bw, by+bh/2); ctx.lineTo(bx, by+bh); } else if(b.doorType === '1R') { ctx.moveTo(bx+bw, by); ctx.lineTo(bx, by+bh/2); ctx.lineTo(bx+bw, by+bh); } else if(b.doorType === 'tophung') { ctx.moveTo(bx, by); ctx.lineTo(bx+bw/2, by+bh); ctx.lineTo(bx+bw, by); } ctx.stroke(); ctx.setLineDash([]); } else if (b.type === 'fan') { let r = Math.min(bw, bh)*0.3; ctx.beginPath(); ctx.arc(bx+bw/2, by+bh/2, r, 0, 2*Math.PI); ctx.stroke(); ctx.moveTo(bx+bw/2-r*0.7, by+bh/2-r*0.7); ctx.lineTo(bx+bw/2+r*0.7, by+bh/2+r*0.7); ctx.moveTo(bx+bw/2+r*0.7, by+bh/2-r*0.7); ctx.lineTo(bx+bw/2-r*0.7, by+bh/2+r*0.7); ctx.stroke(); }
     });
     
@@ -677,6 +717,17 @@ function renderProject() {
         `;
         tbody.appendChild(tr);
         
+        // Add Notes Row right below it (spans full width of the table)
+        if (win.notes && win.notes.trim() !== '') {
+            let noteTr = document.createElement("tr");
+            noteTr.innerHTML = `
+                <td colspan="11" style="text-align: left; padding: 6px 10px; background-color: #f8fafc; font-size: 11px; border: 1px solid #000; color: #0f172a;">
+                    <b style="color:var(--brand-dark);">ENGINEERING NOTES:</b> ${win.notes.toUpperCase()}
+                </td>
+            `;
+            tbody.appendChild(noteTr);
+        }
+        
         // Draw the mini canvas inside the table cell
         let cvs = document.getElementById(`canvas_print_${i}`);
         drawTableCanvas(cvs, win);
@@ -777,6 +828,39 @@ function drawTableCanvas(canvas, d) {
         ctx.lineWidth = 1; ctx.strokeStyle = "#000"; 
         if (b.type === 'sliding' || b.type === 'fixed') { 
             for(let i=1; i<p; i++){ ctx.beginPath(); ctx.moveTo(bx+pw*i, by); ctx.lineTo(bx+pw*i, by+bh); ctx.stroke(); } 
+            
+            // Draw Sliding Direction Arrows
+            if (b.type === 'sliding' && p > 1) {
+                for (let j = 0; j < p; j++) {
+                    let cx = bx + j * pw + pw / 2;
+                    let cy = by + bh / 2;
+                    let dir = (j < p / 2) ? 1 : -1;
+                    if (p % 2 !== 0 && j === Math.floor(p / 2)) dir = 1; 
+                    
+                    let aLen = Math.min(pw * 0.4, 20);
+                    let aH = 2;
+                    let hS = 5;
+                    
+                    let sX = cx - dir * (aLen / 2);
+                    let eX = cx + dir * (aLen / 2);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(sX, cy - aH);
+                    ctx.lineTo(eX - dir * hS, cy - aH);
+                    ctx.lineTo(eX - dir * hS, cy - aH * 2);
+                    ctx.lineTo(eX, cy);
+                    ctx.lineTo(eX - dir * hS, cy + aH * 2);
+                    ctx.lineTo(eX - dir * hS, cy + aH);
+                    ctx.lineTo(sX, cy + aH);
+                    ctx.closePath();
+                    
+                    let oldFill = ctx.fillStyle;
+                    ctx.fillStyle = "white";
+                    ctx.fill();
+                    ctx.fillStyle = oldFill;
+                    ctx.stroke();
+                }
+            }
         }
         
         if (b.type === 'door') { 
