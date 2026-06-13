@@ -760,3 +760,32 @@ input:focus, select:focus, textarea:focus {
         margin-top: 15px;
     }
 }
+/* =========================================
+   DEVELOPER FOOTER
+   ========================================= */
+.app-footer {
+    text-align: center;
+    padding: 15px 20px;
+    font-size: 12px;
+    color: var(--text-muted);
+    background: transparent;
+    border-top: 1px solid var(--border-color);
+    margin-top: auto; 
+}
+
+.app-footer p {
+    margin: 0;
+    font-weight: 500;
+}
+
+.app-footer .dev-name {
+    color: var(--accent-primary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.app-footer a.dev-name:hover {
+    color: var(--brand-dark);
+    text-decoration: underline;
+}
